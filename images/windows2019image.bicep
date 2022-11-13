@@ -12,12 +12,8 @@ param AzureComputingGallery string = 'sig_windows_jpimages'
  
 var imageFolder = 'c:\\images'
 
-resource aibManagedID 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
+resource aibManagedID 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
   name: aibName
-  location: location
-  tags: {
-    displayName: 'Image Builder'
-  }
 }
 
 var userIdentityID = aibManagedID.id
