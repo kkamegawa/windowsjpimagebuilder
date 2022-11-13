@@ -1,19 +1,19 @@
 // https://learn.microsoft.com/en-us/azure/virtual-machines/linux/image-builder-json?tabs=bicep%2Cazure-powershell
 param location string = resourceGroup().location
-param name string = 'aib-${resourceGroup().name}'
+param aibName string = 'aib-${resourceGroup().name}'
 param buildMaxTimeout int = 240
 param identityType string = 'UserAssigned'
 param vmSize string = 'Standard_D8s_v4'
 param sourceValidationFlag bool = false
 param sharedImageRegion string = location
 param gallaryImageName string = 'sig${resourceGroup().name}ws2019'
-
+param imageTemplateName string = 'imageTemplate${resourceGroup().name}ws2019'
+param AzureComputingGallery string = 'sig_windows_jpimages'
+ 
 var imageFolder = 'c:\\images'
-var templateDirectory = '' 
-var helper_script_folder = 'C:\\Program Files\\WindowsPowerShell\\Modules\\'
 
 resource aibManagedID 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
-  name: 'string'
+  name: aibName
   location: location
   tags: {
     displayName: 'Image Builder'
@@ -21,12 +21,11 @@ resource aibManagedID 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-
 }
 
 var userIdentityID = aibManagedID.id
-var stagingResource = 'aib-staging-${resourceGroup().name}'
 
-var gallaryImageDefineID = resourceId('Microsoft.Compute/galleries/images@2022-01-03', gallaryImageName)
+var gallaryImageDefineID = format('/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Compute/galleries/{2}/images/{3}', subscription().subscriptionId, resourceGroup().name, AzureComputingGallery, gallaryImageName)
 
 resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022-02-14' = {
-  name: name
+  name: imageTemplateName
   location: location
   tags: {
     displayName: 'Image Builder'
@@ -48,18 +47,18 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         ]
         runElevated: false
       }
-      {
-        name: 'FolderSetting1'
-        type: 'File'
-        sourceUri: '${templateDirectory}/scripts/ImageHelpers'
-        destination: helper_script_folder
-      }
+//      {
+//        name: 'FolderSetting1'
+//        type: 'File'
+//        sourceUri: '${templateDirectory}/scripts/ImageHelpers'
+//        destination: helper_script_folder
+//      }
     ]
     distribute: [
       {
         type: 'SharedImage'
         galleryImageId: gallaryImageDefineID
-        runOutputName: 'string'
+        runOutputName: 'winclient01'
         artifactTags: {
             source: 'azureVmImageBuilder'
             baseosimg: 'windows2019'
@@ -76,14 +75,15 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
       sku: '2019-Datacenter'
       version: 'latest'
     }
-    stagingResourceGroup: stagingResource
     validate: {
       continueDistributeOnFailure: false
       inVMValidations: [
         {
           name: 'string'
-          type: 'string'
-          // For remaining properties, see ImageTemplateInVMValidator objects
+          type: 'PowerShell'
+          inline: [
+            'Get-ChildItem -Path ${imageFolder}'
+          ]
         }
       ]
       sourceValidationOnly: sourceValidationFlag
@@ -93,8 +93,6 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
       userAssignedIdentities: [
       ]
       vmSize: vmSize
-      vnetConfig: {
-      }
     }
   }
 }
