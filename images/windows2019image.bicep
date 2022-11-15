@@ -43,12 +43,21 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         ]
         runElevated: false
       }
-//      {
-//        name: 'FolderSetting1'
-//        type: 'File'
-//        sourceUri: '${templateDirectory}/scripts/ImageHelpers'
-//        destination: helper_script_folder
-//      }
+      {
+        type: 'WindowsUpdate'
+        searchCriteria: 'IsInstalled=0'
+        filters: [
+          'exclude:$_.Title -like \'*Preview*\''
+          'include:$true'
+        ]
+        updateLimit: 20
+      }
+      {
+        type: 'WindowsRestart'
+        restartCommand: 'shutdown /r /f /t 0'
+        restartCheckCommand: 'echo Azure-Image-Builder-Restarted-the-VM  > c:\\buildArtifacts\\azureImageBuilderRestart.txt'
+        restartTimeout: '10m'
+      }
     ]
     distribute: [
       {
