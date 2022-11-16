@@ -1,6 +1,7 @@
 function Install-LanguagePack {
     param (
-        [int]$imageType
+        [int]$imageType,
+        [string]$folder
     )
     switch ($imageType) {
         0 {$downloadUrl = "https://software-download.microsoft.com/download/pr/17763.1.180914-1434.rs5_release_SERVERLANGPACKDVD_OEM_MULTI.iso"}
@@ -8,8 +9,8 @@ function Install-LanguagePack {
         Default {
             Write-Error -ErrorRecord (New-Object ErrorRecord (New-Object System.Exception "Unsupported image type"))
         }
-    }    
-    $downloadPath = "C:\LangPack.iso"    
+    } 
+    $downloadPath = Join-Path $foler, 'LangPack.iso'
     
     ### downlaod 
     $wc = New-Object net.webclient

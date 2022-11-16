@@ -44,6 +44,20 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         runElevated: false
       }
       {
+        type: 'File'
+        name: 'CopyLangPackScripts'
+        sourceUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/scripts/install-languagepack.ps1'
+        destination: imageFolder
+      }
+      {
+        type: 'PowerShell'
+        name: 'InstallLangPack'
+        inline: [
+          'import-module ${imageFolder}\\install-languagepack.ps1'
+          'Install-LanguagePack -imageType 0 -folder ${imageFolder}'
+        ]
+      }
+      {
         type: 'WindowsUpdate'
         searchCriteria: 'IsInstalled=0'
         filters: [
@@ -57,6 +71,13 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         restartCommand: 'shutdown /r /f /t 0'
         restartCheckCommand: 'echo Azure-Image-Builder-Restarted-the-VM  > c:\\buildArtifacts\\azureImageBuilderRestart.txt'
         restartTimeout: '10m'
+      }
+      {
+        type: 'PowerShell'
+        name: 'cleanup'
+        inline: [
+          'remove-item -path ${imageFolder} -recurse -force'
+        ]
       }
     ]
     distribute: [
