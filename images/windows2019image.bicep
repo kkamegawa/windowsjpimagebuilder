@@ -44,10 +44,10 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         runElevated: false
       }
       {
-        type: 'File'
+        type: 'PowerShell'
         name: 'CopyLangPackScripts'
-        sourceUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/scripts/install-languagepack.ps1'
-        destination: imageFolder
+        runElevated: true
+        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/install-languagepack.ps1'
       }
       {
         type: 'PowerShell'
