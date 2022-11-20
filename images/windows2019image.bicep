@@ -45,17 +45,56 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
       }
       {
         type: 'PowerShell'
-        name: 'CopyLangPackScripts'
+        name: 'InstallLanguagePack'
         runElevated: true
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/install-languagepack.ps1'
       }
       {
         type: 'PowerShell'
-        name: 'InstallLangPack'
+        name: 'ChangeLanguage1'
         inline: [
-          'import-module ${imageFolder}\\install-languagepack.ps1'
-          'Install-LanguagePack -imageType 0 -folder ${imageFolder}'
+          'Set-WinSystemLocale ja-JP,en-US -Force'
+          'Set-WinDefaultInputMethodOverride -InputTip "0411:00000411"'
+          'Set-WinLanguageBarOption -UseLegacySwitchMode -UseLegacyLanguageBar'
         ]
+        runElevated: true
+      }
+      {
+        type: 'WindowsRestart'
+        restartCommand: 'shutdown /r /f /t 0'
+        restartCheckCommand: 'echo Azure-Image-Builder-Restarted-the-VM  > c:\\buildArtifacts\\azureImageBuilderRestart.txt'
+        restartTimeout: '5m'
+      }
+      {
+        type: 'PowerShell'
+        name: 'ChangeLanguage2'
+        inline: [
+          'Set-WinUILanguageOverride -Language ja-JP'
+          'Set-WinCultureFromLanguageListOptOut -OptOut $False'
+          'Set-WinHomeLocation -GeoId 0x7A'
+          'Set-WinSystemLocale -SystemLocale ja-JP'
+          'Set-TimeZone -Id "Tokyo Standard Time"'
+          'Set-Culture ja-JP'
+        ]
+        runElevated: true
+      }
+      {
+        type: 'WindowsRestart'
+        restartCommand: 'shutdown /r /f /t 0'
+        restartCheckCommand: 'echo Azure-Image-Builder-Restarted-the-VM  > c:\\buildArtifacts\\azureImageBuilderRestart.txt'
+        restartTimeout: '5m'
+      }
+      {
+        type: 'PowerShell'
+        name: 'InstallNet48Fx'
+        runElevated: true
+        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/install-NET48.ps1'
+      }
+      {
+        type: 'WindowsRestart'
+        restartCommand: 'shutdown /r /f /t 0'
+        restartCheckCommand: 'echo Azure-Image-Builder-Restarted-the-VM  > c:\\buildArtifacts\\azureImageBuilderRestart.txt'
+        restartTimeout: '10m'
       }
       {
         type: 'WindowsUpdate'
