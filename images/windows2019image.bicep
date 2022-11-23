@@ -58,9 +58,25 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         runElevated: false
       }
       {
+        type: 'File'
+        name: 'SetJaJPDefault'
+        sourceUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/ja-jp-default.reg'
+        destination: '${imageFolder}\\ja-jp-default.reg'
+      }
+      {
+        type: 'File'
+        name: 'SetJaJPWelcome'
+        sourceUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/ja-jp-welcome.reg'
+        destination: '${imageFolder}\\ja-jp-welcome.reg'
+      }
+      {
+        type: 'PowerShell'
+        name: 'ChangeDefaultLanguage'
+        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/load_registry.ps1'
+        runElevated: false
+      }
+      {
         type: 'WindowsRestart'
-        restartCommand: 'shutdown /r /f /t 0'
-        restartCheckCommand: 'echo Azure-Image-Builder-Restarted-the-VM  > c:\\buildArtifacts\\azureImageBuilderRestart.txt'
         restartTimeout: '5m'
       }
       {
@@ -75,18 +91,6 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
           'Set-Culture ja-JP'
         ]
         runElevated: false
-      }
-      {
-        type: 'PowerShell'
-        name: 'InstallNet48Fx'
-        runElevated: true
-        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/Install-NET48.ps1'
-      }
-      {
-        type: 'PowerShell'
-        name: 'InstallNet48Fxlangpack'
-        runElevated: true
-        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/Install-NET48langpack.ps1'
       }
       {
         type: 'WindowsUpdate'
