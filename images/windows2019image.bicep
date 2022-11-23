@@ -77,22 +77,10 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         runElevated: false
       }
       {
-        type: 'WindowsRestart'
-        restartCommand: 'shutdown /r /f /t 0'
-        restartCheckCommand: 'echo Azure-Image-Builder-Restarted-the-VM  > c:\\buildArtifacts\\azureImageBuilderRestart.txt'
-        restartTimeout: '5m'
-      }
-      {
         type: 'PowerShell'
         name: 'InstallNet48Fx'
         runElevated: true
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/Install-NET48.ps1'
-      }
-      {
-        type: 'WindowsRestart'
-        restartCommand: 'shutdown /r /f /t 0'
-        restartCheckCommand: 'echo Azure-Image-Builder-Restarted-the-VM  > c:\\buildArtifacts\\azureImageBuilderRestart.txt'
-        restartTimeout: '10m'
       }
       {
         type: 'PowerShell'
@@ -101,25 +89,17 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/Install-NET48langpack.ps1'
       }
       {
-        type: 'WindowsRestart'
-        restartCommand: 'shutdown /r /f /t 0'
-        restartCheckCommand: 'echo Azure-Image-Builder-Restarted-the-VM  > c:\\buildArtifacts\\azureImageBuilderRestart.txt'
-        restartTimeout: '10m'
-      }
-      {
         type: 'WindowsUpdate'
         searchCriteria: 'IsInstalled=0'
         filters: [
           'exclude:$_.Title -like \'*Preview*\''
           'include:$true'
         ]
-        updateLimit: 20
+        updateLimit: 30
       }
       {
         type: 'WindowsRestart'
-        restartCommand: 'shutdown /r /f /t 0'
-        restartCheckCommand: 'echo Azure-Image-Builder-Restarted-the-VM  > c:\\buildArtifacts\\azureImageBuilderRestart.txt'
-        restartTimeout: '10m'
+        restartTimeout: '15m'
       }
       {
         type: 'PowerShell'
