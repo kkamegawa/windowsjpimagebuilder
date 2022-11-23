@@ -132,12 +132,9 @@ function Start-DownloadWithRetry
 }
 
 
-$InstallerName = "ndp48-x86-x64-allos-enu.exe"
-#$installerJPName = "ndp48-x86-x64-allos-jpn.exe"
-$InstallerUrl = "https://download.visualstudio.microsoft.com/download/pr/2d6bb6b2-226a-4baa-bdec-798822606ff1/8494001c276a4b96804cde7829c04d7f/${InstallerName}"
-#$installerJPUrl = "https://download.visualstudio.microsoft.com/download/pr/c2ad65ab-bab3-4d24-ada4-aaf2ff0c1266/88010bdd8255cf9bb46cec6ed09aed69/${installerJPName}"
+$installerJPName = "ndp48-x86-x64-allos-jpn.exe"
+$installerJPUrl = "https://download.visualstudio.microsoft.com/download/pr/c2ad65ab-bab3-4d24-ada4-aaf2ff0c1266/88010bdd8255cf9bb46cec6ed09aed69/${installerJPName}"
 $ArgumentList = ("Setup", "/passive", "/norestart")
 
-Install-Binary -Url $InstallerUrl -Name $InstallerName -ArgumentList $ArgumentList
-#Install-Binary -Url $installerJPUrl -Name $installerJPName -ArgumentList $ArgumentList
+Install-Binary -Url $installerJPUrl -Name $installerJPName -ArgumentList $ArgumentList
 

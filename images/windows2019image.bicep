@@ -46,18 +46,16 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
       {
         type: 'PowerShell'
         name: 'InstallLanguagePack'
-        runElevated: true
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/install-languagepack.ps1'
       }
       {
         type: 'PowerShell'
         name: 'ChangeLanguage1'
         inline: [
-          'Set-WinSystemLocale ja-JP,en-US -Force'
+          'Set-WinUserLanguageList -LanguageList ja-JP,en-US -Force'
           'Set-WinDefaultInputMethodOverride -InputTip "0411:00000411"'
-          'Set-WinLanguageBarOption -UseLegacySwitchMode -UseLegacyLanguageBar'
         ]
-        runElevated: true
+        runElevated: false
       }
       {
         type: 'WindowsRestart'
@@ -76,7 +74,7 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
           'Set-TimeZone -Id "Tokyo Standard Time"'
           'Set-Culture ja-JP'
         ]
-        runElevated: true
+        runElevated: false
       }
       {
         type: 'WindowsRestart'
@@ -89,6 +87,18 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         name: 'InstallNet48Fx'
         runElevated: true
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/Install-NET48.ps1'
+      }
+      {
+        type: 'WindowsRestart'
+        restartCommand: 'shutdown /r /f /t 0'
+        restartCheckCommand: 'echo Azure-Image-Builder-Restarted-the-VM  > c:\\buildArtifacts\\azureImageBuilderRestart.txt'
+        restartTimeout: '10m'
+      }
+      {
+        type: 'PowerShell'
+        name: 'InstallNet48Fxlangpack'
+        runElevated: true
+        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/Install-NET48langpack.ps1'
       }
       {
         type: 'WindowsRestart'
