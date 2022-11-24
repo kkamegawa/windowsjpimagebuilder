@@ -103,7 +103,16 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
       }
       {
         type: 'WindowsRestart'
-        restartTimeout: '15m'
+        restartTimeout: '40m'
+      }
+      {
+        type: 'PowerShell'
+        inline: [
+            'while ((Get-Service RdAgent).Status -ne \'Running\') { Start-Sleep -s 5 }'
+            'while ((Get-Service WindowsAzureGuestAgent).Status -ne \'Running\') { Start-Sleep -s 5 }'
+            '& net start WindowsAzureGuestAgent'
+            '& net start rdagent'
+        ]
       }
       {
         type: 'PowerShell'
