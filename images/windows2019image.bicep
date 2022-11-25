@@ -54,14 +54,13 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         inline: [
           'Set-WinUserLanguageList -LanguageList ja-JP,en-US -Force'
           'Set-WinDefaultInputMethodOverride -InputTip "0411:00000411"'
+          'Set-WinLanguageBarOption -UseLegacySwitchMode -UseLegacyLanguageBar'
         ]
         runElevated: false
       }
       {
-        type: 'File'
-        name: 'SetJaJPDefault'
-        sourceUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/ja-jp-default.reg'
-        destination: '${imageFolder}\\ja-jp-default.reg'
+        type: 'WindowsRestart'
+        restartTimeout: '5m'
       }
       {
         type: 'File'
@@ -70,14 +69,10 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         destination: '${imageFolder}\\ja-jp-welcome.reg'
       }
       {
-        type: 'PowerShell'
-        name: 'ChangeDefaultLanguage'
-        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/load_registry.ps1'
-        runElevated: false
-      }
-      {
-        type: 'WindowsRestart'
-        restartTimeout: '5m'
+        type: 'File'
+        name: 'SetJaJPDefault'
+        sourceUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/ja-jp-default.reg'
+        destination: '${imageFolder}\\ja-jp-default.reg'
       }
       {
         type: 'PowerShell'
@@ -91,6 +86,16 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
           'Set-Culture ja-JP'
         ]
         runElevated: false
+      }
+      {
+        type: 'PowerShell'
+        name: 'ChangeDefaultLanguage'
+        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/load_registry.ps1'
+        runElevated: false
+      }
+      {
+        type: 'WindowsRestart'
+        restartTimeout: '5m'
       }
       {
         type: 'WindowsUpdate'
