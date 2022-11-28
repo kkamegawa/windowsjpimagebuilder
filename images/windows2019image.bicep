@@ -53,8 +53,10 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         name: 'ChangeLanguage1'
         inline: [
           'Set-WinUserLanguageList -LanguageList ja-JP,en-US -Force'
-          'Set-WinDefaultInputMethodOverride -InputTip "0411:00000411"'
-          'Set-WinLanguageBarOption -UseLegacySwitchMode -UseLegacyLanguageBar'
+          '$LangList = Get-WinUserLanguageList'
+          '$MarkedLang = $LangList | where LanguageTag -eq "en-US"'
+          '$LangList.Remove($MarkedLang)'
+          'Set-WinUserLanguageList $LangList -Force'
         ]
         runElevated: false
       }
