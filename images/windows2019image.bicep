@@ -40,7 +40,7 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         type: 'PowerShell'
         runElevated: true
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Initialize-VM.ps1'
-        sha256Checksum: '7FB108E72BD217E73232FE8F0B9AE92653E41819F2BAA2FADCAD663CAB261FB6'
+        sha256Checksum: 'cb0d206bfb73fbda290d31ef7e64c6e77c808879a87e65811dcab92e27e916a7'
       }
       {
         name: 'startup'
@@ -131,7 +131,7 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         type: 'PowerShell'
         runElevated: true
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Finalize-VM.ps1'
-        sha256Checksum: '806402BFAE838EDF0938937B3B612AE4B03E858FC5950E43742B30CF106589B2'
+        sha256Checksum: '806402bfae838edf0938937b3b612ae4b03e858fc5950e43742b30cf106589b2'
       }
       {
         type: 'PowerShell'

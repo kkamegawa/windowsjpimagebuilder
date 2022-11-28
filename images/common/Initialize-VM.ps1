@@ -21,7 +21,3 @@ New-Item -Path HKLM:\System\CurrentControlSet\Control\Network -Name NewNetworkWi
 
 Write-Host "Disable Windows Update"
 Disable-WindowsUpdate
-
-Write-Host "Setting local execution policy"
-Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope LocalMachine  -ErrorAction Continue | Out-Null
-Get-ExecutionPolicy -List
