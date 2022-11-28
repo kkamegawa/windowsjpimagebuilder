@@ -36,6 +36,13 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
     buildTimeoutInMinutes: buildMaxTimeout
     customize: [
       {
+        name: 'InitializeVM'
+        type: 'PowerShell'
+        runElevated: true
+        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Initialize-VM.ps1'
+        sha256Checksum: '7FB108E72BD217E73232FE8F0B9AE92653E41819F2BAA2FADCAD663CAB261FB6'
+      }
+      {
         name: 'startup'
         type: 'PowerShell'
         inline: [
@@ -97,7 +104,7 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
       }
       {
         type: 'WindowsRestart'
-        restartTimeout: '5m'
+        restartTimeout: '10m'
       }
       {
         type: 'WindowsUpdate'
@@ -118,6 +125,13 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
             'while ((Get-Service RdAgent).Status -ne \'Running\') { Start-Sleep -s 5 }'
             'while ((Get-Service WindowsAzureGuestAgent).Status -ne \'Running\') { Start-Sleep -s 5 }'
         ]
+      }
+      {
+        name: 'FinalizeVM'
+        type: 'PowerShell'
+        runElevated: true
+        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Finalize-VM.ps1'
+        sha256Checksum: '806402BFAE838EDF0938937B3B612AE4B03E858FC5950E43742B30CF106589B2'
       }
       {
         type: 'PowerShell'
