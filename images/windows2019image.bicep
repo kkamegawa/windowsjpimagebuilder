@@ -40,7 +40,7 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         type: 'PowerShell'
         runElevated: true
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Initialize-VM.ps1'
-        sha256Checksum: 'cb0d206bfb73fbda290d31ef7e64c6e77c808879a87e65811dcab92e27e916a7'
+        sha256Checksum: '7148640bccbc7b0a99975cbc006c1087f13bc31106b9abfe21fa8a301e7ed552'
       }
       {
         name: 'startup'
@@ -54,6 +54,13 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         type: 'PowerShell'
         name: 'InstallLanguagePack'
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/install-languagepack.ps1'
+        sha256Checksum: '467cfeb5727ba216bce70b2074f214c09b201b0de005e142eaa996b60ddd0f87'
+      }
+      {
+        type: 'PowerShell'
+        name: 'InstallNET48FX'
+        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/Install-NET48.ps1'
+        sha256Checksum: '153558fb05f977ed20030925fc02d9aed0c56fb9cdb405a5771d81709fcec44a'
       }
       {
         type: 'PowerShell'
@@ -101,6 +108,7 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         name: 'ChangeDefaultLanguage'
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/load_registry.ps1'
         runElevated: false
+        sha256Checksum: '3ed09b0da5a922f694a2de13f9236a71619f651b2421fe975c448596ac31a806'
       }
       {
         type: 'WindowsRestart'
@@ -118,13 +126,6 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
       {
         type: 'WindowsRestart'
         restartTimeout: '40m'
-      }
-      {
-        type: 'PowerShell'
-        inline: [
-            'while ((Get-Service RdAgent).Status -ne \'Running\') { Start-Sleep -s 5 }'
-            'while ((Get-Service WindowsAzureGuestAgent).Status -ne \'Running\') { Start-Sleep -s 5 }'
-        ]
       }
       {
         name: 'FinalizeVM'
