@@ -18,7 +18,9 @@ resource aibManagedID 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-
 
 var userIdentityID = aibManagedID.id
 
-var gallaryImageDefineID = format('/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Compute/galleries/{2}/images/{3}', subscription().subscriptionId, resourceGroup().name, AzureComputingGallery, gallaryImageName)
+resource gal 'Microsoft.Compute/galleries/images@2022-03-03' existing = {
+  name: '${AzureComputingGallery}/${gallaryImageName}'
+}
 
 resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022-02-14' = {
   name: imageTemplateName
@@ -79,6 +81,12 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         restartTimeout: '5m'
       }
       {
+        type: 'PowerShell'
+        name: 'InstallNET48FXjp'
+        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/Install-NET48langpack.ps1'
+        sha256Checksum: 'e9a3a3c956e2728faf0a6b2492ca99e8fdf71934f9efc7502a4499ee68d44877'
+      }
+      {
         type: 'File'
         name: 'SetJaJPWelcome'
         sourceUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/ja-jp-welcome.reg'
@@ -128,11 +136,18 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         restartTimeout: '40m'
       }
       {
+        name: 'RunNGen'
+        type: 'PowerShell'
+        runElevated: true
+        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/Run-NGen.ps1'
+        sha256Checksum: 'cb6563088d5021ee0b309211183cdf01cf74f2cd5afc8ed8d4a2b67294fe9d70'
+      }
+      {
         name: 'FinalizeVM'
         type: 'PowerShell'
         runElevated: true
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Finalize-VM.ps1'
-        sha256Checksum: '806402bfae838edf0938937b3b612ae4b03e858fc5950e43742b30cf106589b2'
+        sha256Checksum: 'a4d93afb23f72fafa8b13285cf56c31975e62a39bb536ec80a4ab6e23b620e32'
       }
       {
         type: 'PowerShell'
@@ -145,7 +160,7 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
     distribute: [
       {
         type: 'SharedImage'
-        galleryImageId: gallaryImageDefineID
+        galleryImageId: gal.id
         runOutputName: 'winclient01'
         artifactTags: {
             source: 'azureVmImageBuilder'
