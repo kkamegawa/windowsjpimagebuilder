@@ -37,7 +37,7 @@ Get-ScheduledTask -TaskName ServerManager | Enable-ScheduledTask
 
 Write-Host "Enable 'Allow your PC to be discoverable by other PCs' popup"
 if(Test-Path -Path "HKLM:\System\CurrentControlSet\Control\Network\NewNetworkWindowOff") {
-    wrie-host "Remove 'Allow your PC to be discoverable by other PCs' popup"
+    write-host "Remove 'Allow your PC to be discoverable by other PCs' popup"
     Remove-Item -Path HKLM:\System\CurrentControlSet\Control\Network\NewNetworkWindowOff -Force
 }
 
