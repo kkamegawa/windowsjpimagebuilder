@@ -13,6 +13,25 @@ function Enable-WindowsUpdate {
     }
 }
 
+Write-Host "Cleanup WinSxS"
+Dism.exe /online /Cleanup-Image /StartComponentCleanup /ResetBase
+
+Write-Host "Clean up various directories"
+@(
+    "$env:SystemDrive\Recovery",
+    "$env:SystemRoot\logs",
+    "$env:SystemRoot\winsxs\manifestcache",
+    "$env:SystemRoot\Temp",
+    "$env:TEMP"
+) | ForEach-Object {
+    if (Test-Path $_) {
+        Write-Host "Removing $_"
+        cmd /c "takeown /d Y /R /f $_ 2>&1" | Out-Null
+        cmd /c "icacls $_ /grant:r administrators:f /t /c /q 2>&1" | Out-Null
+        Remove-Item $_ -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+    }
+}
+
 Write-Host "Enable Server Manager on Logon"
 Get-ScheduledTask -TaskName ServerManager | Enable-ScheduledTask
 
