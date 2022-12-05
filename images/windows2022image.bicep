@@ -9,6 +9,7 @@ param sharedImageRegion string = location
 param gallaryImageName string = 'sig${resourceGroup().name}ws2019'
 param imageTemplateName string = 'imageTemplate${resourceGroup().name}ws2019'
 param AzureComputingGallery string = 'sig_windows_jpimages'
+param WindowsLangPackUri string = 'https://yourblob.blob.core.windows.net/iso/mul_windows_server_2022_languages_optional_features_x64_dvd_08a242b4.iso'
  
 var imageFolder = 'c:\\images'
 
@@ -53,10 +54,16 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         runElevated: false
       }
       {
+        type: 'File'
+        name: 'DownloadLangPackISO'
+        sourceUri: WindowsLangPackUri
+        destination: '${imageFolder}\\langpack.iso'
+      }
+      {
         type: 'PowerShell'
         name: 'InstallLanguagePack'
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2022/install-languagepack.ps1'
-        sha256Checksum: 'c2e3ca6e7d95764daa528443c41f893593ae4e7864308220367103e84bbce83c'
+        sha256Checksum: '04d4225d26f94b6ad0592d2832c0e3ddcc60a99cfea30b90f0f84887e686f98a'
       }
       {
         type: 'PowerShell'
