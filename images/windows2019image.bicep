@@ -65,6 +65,12 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         sha256Checksum: '153558fb05f977ed20030925fc02d9aed0c56fb9cdb405a5771d81709fcec44a'
       }
       {
+        type: 'File'
+        name: 'Copysysprep'
+        sourceUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/sysprep.ps1'
+        destination: 'c:\\DeprovisioningScript.ps1'
+      }
+      {
         type: 'PowerShell'
         name: 'ChangeLanguage1'
         inline: [
