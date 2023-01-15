@@ -22,6 +22,10 @@ resource gal 'Microsoft.Compute/galleries/images@2022-03-03' existing = {
   name: '${AzureComputingGallery}/${gallaryImageName}'
 }
 
+param date string = utcNow('yyyy.MM.ddHHmm')
+
+var galleyImageVersion = '${gal.id}/versions/${date}'
+
 resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022-02-14' = {
   name: imageTemplateName
   location: location
@@ -63,6 +67,12 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         name: 'InstallNET48FX'
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/Install-NET48.ps1'
         sha256Checksum: '153558fb05f977ed20030925fc02d9aed0c56fb9cdb405a5771d81709fcec44a'
+      }
+      {
+        type: 'File'
+        name: 'Copysysprep'
+        sourceUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/sysprep.ps1'
+        destination: 'c:\\DeprovisioningScript.ps1'
       }
       {
         type: 'PowerShell'
@@ -160,7 +170,7 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
     distribute: [
       {
         type: 'SharedImage'
-        galleryImageId: gal.id
+        galleryImageId: galleyImageVersion
         runOutputName: 'winclient01'
         artifactTags: {
             source: 'azureVmImageBuilder'
