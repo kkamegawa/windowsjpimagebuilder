@@ -22,6 +22,10 @@ resource gal 'Microsoft.Compute/galleries/images@2022-03-03' existing = {
   name: '${AzureComputingGallery}/${gallaryImageName}'
 }
 
+param date string = utcNow('yyyy.MM.ddHHmm')
+
+var galleyImageVersion = '${gal.id}/versions/${date}'
+
 resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022-02-14' = {
   name: imageTemplateName
   location: location
@@ -166,7 +170,7 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
     distribute: [
       {
         type: 'SharedImage'
-        galleryImageId: gal.id
+        galleryImageId: galleyImageVersion
         runOutputName: 'winclient01'
         artifactTags: {
             source: 'azureVmImageBuilder'
