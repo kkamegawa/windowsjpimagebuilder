@@ -185,7 +185,7 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
       type: 'PlatformImage'
       publisher: 'MicrosoftWindowsServer'
       offer: 'WindowsServer'
-      sku: '2019-datacenter'
+      sku: '2019-datacenter-gensecond'
       version: 'latest'
     }
     validate: {
