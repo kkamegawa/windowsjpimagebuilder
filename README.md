@@ -6,7 +6,7 @@
 
 [EULA](EULA.md)を見てください。このイメージは無保証です。
 
-## Suport
+## Support
 
 [Issue](https://github.com/kkamegawa/windowsjpimagebuilder/issues)にお願いします。
 
