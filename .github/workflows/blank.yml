@@ -13,7 +13,6 @@ on:
 
 env:
   out_dir: public
-  main_bicep_file: bicep/main_parent.bicep
   Windows_2019_gen1_file: images/windows2019image.bicep
   Windows_2019_gen2_file: images/windows2019image_gen2.bicep
   Windows_2022_gen2_file: images/windows2022image.bicep
