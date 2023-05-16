@@ -1,0 +1,248 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.17.1.54307",
+      "templateHash": "13690151873235504805"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]"
+    },
+    "aibName": {
+      "type": "string",
+      "defaultValue": "[format('aib-{0}', resourceGroup().name)]"
+    },
+    "buildMaxTimeout": {
+      "type": "int",
+      "defaultValue": 240
+    },
+    "identityType": {
+      "type": "string",
+      "defaultValue": "UserAssigned"
+    },
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_D8s_v4"
+    },
+    "sourceValidationFlag": {
+      "type": "bool",
+      "defaultValue": false
+    },
+    "sharedImageRegion": {
+      "type": "string",
+      "defaultValue": "[parameters('location')]"
+    },
+    "gallaryImageName": {
+      "type": "string",
+      "defaultValue": "[format('sig{0}ws2019', resourceGroup().name)]"
+    },
+    "imageTemplateName": {
+      "type": "string",
+      "defaultValue": "[format('imageTemplate{0}ws2019', resourceGroup().name)]"
+    },
+    "AzureComputingGallery": {
+      "type": "string",
+      "defaultValue": "sig_windows_jpimages"
+    },
+    "date": {
+      "type": "string",
+      "defaultValue": "[utcNow('yyyy.MM.ddHHmm')]"
+    }
+  },
+  "variables": {
+    "imageFolder": "c:\\images",
+    "userIdentityID": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('aibName'))]",
+    "galleyImageVersion": "[format('{0}/versions/{1}', resourceId('Microsoft.Compute/galleries/images', split(format('{0}/{1}', parameters('AzureComputingGallery'), parameters('gallaryImageName')), '/')[0], split(format('{0}/{1}', parameters('AzureComputingGallery'), parameters('gallaryImageName')), '/')[1]), parameters('date'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.VirtualMachineImages/imageTemplates",
+      "apiVersion": "2022-02-14",
+      "name": "[parameters('imageTemplateName')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "displayName": "Image Builder"
+      },
+      "identity": {
+        "type": "[parameters('identityType')]",
+        "userAssignedIdentities": {
+          "[format('{0}', variables('userIdentityID'))]": {}
+        }
+      },
+      "properties": {
+        "buildTimeoutInMinutes": "[parameters('buildMaxTimeout')]",
+        "customize": [
+          {
+            "name": "InitializeVM",
+            "type": "PowerShell",
+            "runElevated": true,
+            "scriptUri": "https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Initialize-VM.ps1",
+            "sha256Checksum": "7148640bccbc7b0a99975cbc006c1087f13bc31106b9abfe21fa8a301e7ed552"
+          },
+          {
+            "name": "startup",
+            "type": "PowerShell",
+            "inline": [
+              "[format('New-Item -ItemType Directory -Path {0} -force', variables('imageFolder'))]"
+            ],
+            "runElevated": false
+          },
+          {
+            "type": "PowerShell",
+            "name": "InstallLanguagePack",
+            "scriptUri": "https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/install-languagepack.ps1",
+            "sha256Checksum": "467cfeb5727ba216bce70b2074f214c09b201b0de005e142eaa996b60ddd0f87"
+          },
+          {
+            "type": "PowerShell",
+            "name": "InstallNET48FX",
+            "scriptUri": "https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/Install-NET48.ps1",
+            "sha256Checksum": "153558fb05f977ed20030925fc02d9aed0c56fb9cdb405a5771d81709fcec44a"
+          },
+          {
+            "type": "File",
+            "name": "Copysysprep",
+            "sourceUri": "https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/sysprep.ps1",
+            "destination": "c:\\DeprovisioningScript.ps1"
+          },
+          {
+            "type": "PowerShell",
+            "name": "ChangeLanguage1",
+            "inline": [
+              "Set-WinUserLanguageList -LanguageList ja-JP,en-US -Force",
+              "$LangList = Get-WinUserLanguageList",
+              "$MarkedLang = $LangList | where LanguageTag -eq \"en-US\"",
+              "$LangList.Remove($MarkedLang)",
+              "Set-WinUserLanguageList $LangList -Force"
+            ],
+            "runElevated": false
+          },
+          {
+            "type": "WindowsRestart",
+            "restartTimeout": "5m"
+          },
+          {
+            "type": "PowerShell",
+            "name": "InstallNET48FXjp",
+            "scriptUri": "https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/Install-NET48langpack.ps1",
+            "sha256Checksum": "e9a3a3c956e2728faf0a6b2492ca99e8fdf71934f9efc7502a4499ee68d44877"
+          },
+          {
+            "type": "File",
+            "name": "SetJaJPWelcome",
+            "sourceUri": "https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/ja-jp-welcome.reg",
+            "destination": "[format('{0}\\ja-jp-welcome.reg', variables('imageFolder'))]"
+          },
+          {
+            "type": "File",
+            "name": "SetJaJPDefault",
+            "sourceUri": "https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/ja-jp-default.reg",
+            "destination": "[format('{0}\\ja-jp-default.reg', variables('imageFolder'))]"
+          },
+          {
+            "type": "PowerShell",
+            "name": "ChangeLanguage2",
+            "inline": [
+              "Set-WinUILanguageOverride -Language ja-JP",
+              "Set-WinCultureFromLanguageListOptOut -OptOut $False",
+              "Set-WinHomeLocation -GeoId 0x7A",
+              "Set-WinSystemLocale -SystemLocale ja-JP",
+              "Set-TimeZone -Id \"Tokyo Standard Time\"",
+              "Set-Culture ja-JP"
+            ],
+            "runElevated": false
+          },
+          {
+            "type": "PowerShell",
+            "name": "ChangeDefaultLanguage",
+            "scriptUri": "https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/load_registry.ps1",
+            "runElevated": false,
+            "sha256Checksum": "3ed09b0da5a922f694a2de13f9236a71619f651b2421fe975c448596ac31a806"
+          },
+          {
+            "type": "WindowsRestart",
+            "restartTimeout": "10m"
+          },
+          {
+            "type": "WindowsUpdate",
+            "searchCriteria": "IsInstalled=0",
+            "filters": [
+              "exclude:$_.Title -like '*Preview*'",
+              "include:$true"
+            ],
+            "updateLimit": 30
+          },
+          {
+            "type": "WindowsRestart",
+            "restartTimeout": "40m"
+          },
+          {
+            "name": "RunNGen",
+            "type": "PowerShell",
+            "runElevated": true,
+            "scriptUri": "https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/Run-NGen.ps1",
+            "sha256Checksum": "cb6563088d5021ee0b309211183cdf01cf74f2cd5afc8ed8d4a2b67294fe9d70"
+          },
+          {
+            "name": "FinalizeVM",
+            "type": "PowerShell",
+            "runElevated": true,
+            "scriptUri": "https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Finalize-VM.ps1",
+            "sha256Checksum": "a4d93afb23f72fafa8b13285cf56c31975e62a39bb536ec80a4ab6e23b620e32"
+          },
+          {
+            "type": "PowerShell",
+            "name": "cleanup",
+            "inline": [
+              "[format('remove-item -path {0} -recurse -force', variables('imageFolder'))]"
+            ]
+          }
+        ],
+        "distribute": [
+          {
+            "type": "SharedImage",
+            "galleryImageId": "[variables('galleyImageVersion')]",
+            "runOutputName": "winclient01",
+            "artifactTags": {
+              "source": "azureVmImageBuilder",
+              "baseosimg": "windows2019"
+            },
+            "replicationRegions": [
+              "[parameters('sharedImageRegion')]"
+            ]
+          }
+        ],
+        "source": {
+          "type": "PlatformImage",
+          "publisher": "MicrosoftWindowsServer",
+          "offer": "WindowsServer",
+          "sku": "2019-datacenter-gensecond",
+          "version": "latest"
+        },
+        "validate": {
+          "continueDistributeOnFailure": false,
+          "inVMValidations": [
+            {
+              "name": "string",
+              "type": "PowerShell",
+              "inline": [
+                "[format('Get-ChildItem -Path {0}', variables('imageFolder'))]"
+              ]
+            }
+          ],
+          "sourceValidationOnly": "[parameters('sourceValidationFlag')]"
+        },
+        "vmProfile": {
+          "osDiskSizeGB": 127,
+          "userAssignedIdentities": [],
+          "vmSize": "[parameters('vmSize')]"
+        }
+      }
+    }
+  ]
+}
