@@ -1,0 +1,41 @@
+# This is a basic workflow to help you get started with Actions
+
+name: build bicep to JSON
+
+# Controls when the workflow will run
+on:
+  push:
+    branches:
+      - main  # Set a branch name to trigger deployment
+    paths:
+      - '**.bicep'
+  workflow_dispatch:
+
+env:
+  out_dir: public
+  main_bicep_file: bicep/main_parent.bicep
+  Windows_2019_gen1_file: images/windows2019image.bicep
+  Windows_2019_gen2_file: images/windows2019image_gen2.bicep
+  Windows_2022_gen2_file: images/windows2022image.bicep
+  publish_branch: json_template
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build bicep
+        run: |
+          mkdir ./${{ env.out_dir }}
+          az bicep build --file ${{ env.Windows_2019_gen1_file }} --outdir ${{ env.out_dir }}
+          az bicep build --file ${{ env.Windows_2019_gen2_file }} --outdir ${{ env.out_dir }}
+          az bicep build --file ${{ env.Windows_2022_gen2_file }} --outdir ${{ env.out_dir }}
+      - name: Publish to other branch
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ github.ref == 'refs/heads/main' }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./${{ env.out_dir }}
+          publish_branch: ${{ env.publish_branch }}
+      
