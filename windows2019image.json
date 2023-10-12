@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.17.1.54307",
-      "templateHash": "14301671699632048798"
+      "version": "0.21.1.54444",
+      "templateHash": "3962798868275362565"
     }
   },
   "parameters": {
@@ -62,7 +62,7 @@
   "resources": [
     {
       "type": "Microsoft.VirtualMachineImages/imageTemplates",
-      "apiVersion": "2022-02-14",
+      "apiVersion": "2022-07-01",
       "name": "[parameters('imageTemplateName')]",
       "location": "[parameters('location')]",
       "tags": {
