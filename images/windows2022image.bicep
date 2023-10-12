@@ -12,7 +12,7 @@ param AzureComputingGallery string = 'sig_windows_jpimages'
  
 var imageFolder = 'c:\\images'
 
-resource aibManagedID 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
+resource aibManagedID 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
   name: aibName
 }
 
@@ -22,7 +22,7 @@ resource gal 'Microsoft.Compute/galleries/images@2022-03-03' existing = {
   name: '${AzureComputingGallery}/${gallaryImageName}'
 }
 
-resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022-02-14' = {
+resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022-07-01' = {
   name: imageTemplateName
   location: location
   tags: {
