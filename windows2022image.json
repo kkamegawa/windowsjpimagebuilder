@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.21.1.54444",
-      "templateHash": "13328037349199821303"
+      "templateHash": "3318413530028930158"
     }
   },
   "parameters": {
@@ -27,7 +27,7 @@
     },
     "vmSize": {
       "type": "string",
-      "defaultValue": "Standard_D8s_v4"
+      "defaultValue": "Standard_D4_v4"
     },
     "sourceValidationFlag": {
       "type": "bool",
@@ -39,15 +39,19 @@
     },
     "gallaryImageName": {
       "type": "string",
-      "defaultValue": "[format('sig{0}ws2019', resourceGroup().name)]"
+      "defaultValue": "[format('sig{0}ws2022', resourceGroup().name)]"
     },
     "imageTemplateName": {
       "type": "string",
-      "defaultValue": "[format('imageTemplate{0}ws2019', resourceGroup().name)]"
+      "defaultValue": "[format('imageTemplate{0}ws2022', resourceGroup().name)]"
     },
     "AzureComputingGallery": {
       "type": "string",
       "defaultValue": "sig_windows_jpimages"
+    },
+    "languagePackStorageAccountName": {
+      "type": "string",
+      "defaultValue": "[format('https://stg{0}.blob.core.windows.net/iso/mul_windows_server_2022_languages_optional_features_x64_dvd_08a242b4.iso', resourceGroup().name)]"
     }
   },
   "variables": {
@@ -83,7 +87,9 @@
             "name": "startup",
             "type": "PowerShell",
             "inline": [
-              "[format('New-Item -ItemType Directory -Path {0} -force', variables('imageFolder'))]"
+              "[format('New-Item -ItemType Directory -Path {0} -force', variables('imageFolder'))]",
+              "[format('$outputPath = join-path {0} -childpath langpack.iso', variables('imageFolder'))]",
+              "[format('invoke-webclient -uri {0} -outfile $outputPath -usebasicparsing', parameters('languagePackStorageAccountName'))]"
             ],
             "runElevated": false
           },
