@@ -3,17 +3,17 @@ param location string = resourceGroup().location
 param aibName string = 'aib-${resourceGroup().name}'
 param buildMaxTimeout int = 240
 param identityType string = 'UserAssigned'
-param vmSize string = 'Standard_D8s_v4'
+param vmSize string = 'Standard_D4_v4'
 param sourceValidationFlag bool = false
 param sharedImageRegion string = location
-param gallaryImageName string = 'sig${resourceGroup().name}ws2019'
-param imageTemplateName string = 'imageTemplate${resourceGroup().name}ws2019'
+param gallaryImageName string = 'sig${resourceGroup().name}ws2022'
+param imageTemplateName string = 'imageTemplate${resourceGroup().name}ws2022'
 param AzureComputingGallery string = 'sig_windows_jpimages'
-param WindowsLangPackUri string = 'https://yourblob.blob.core.windows.net/iso/mul_windows_server_2022_languages_optional_features_x64_dvd_08a242b4.iso'
+param languagePackStorageAccountName string = 'https://stg${resourceGroup().name}.blob.core.windows.net/iso/mul_windows_server_2022_languages_optional_features_x64_dvd_08a242b4.iso'
  
 var imageFolder = 'c:\\images'
 
-resource aibManagedID 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
+resource aibManagedID 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
   name: aibName
 }
 
@@ -23,7 +23,7 @@ resource gal 'Microsoft.Compute/galleries/images@2022-03-03' existing = {
   name: '${AzureComputingGallery}/${gallaryImageName}'
 }
 
-resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022-02-14' = {
+resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022-07-01' = {
   name: imageTemplateName
   location: location
   tags: {
@@ -50,13 +50,15 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         type: 'PowerShell'
         inline: [
           'New-Item -ItemType Directory -Path ${imageFolder} -force'
+          '$outputPath = join-path ${imageFolder} -childpath langpack.iso'
+          'invoke-webclient -uri ${languagePackStorageAccountName} -outfile $outputPath -usebasicparsing'
         ]
         runElevated: false
       }
       {
         type: 'File'
         name: 'DownloadLangPackISO'
-        sourceUri: WindowsLangPackUri
+        sourceUri: languagePackStorageAccountName
         destination: '${imageFolder}\\langpack.iso'
       }
       {
@@ -181,7 +183,7 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
       type: 'PlatformImage'
       publisher: 'MicrosoftWindowsServer'
       offer: 'WindowsServer'
-      sku: '2022-datacenter-azure-edition'
+      sku: '2022-datacenter-azure-edition-hotpatch'
       version: 'latest'
     }
     validate: {
