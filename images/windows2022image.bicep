@@ -56,10 +56,28 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         runElevated: false
       }
       {
+        type: 'File'
+        name: 'DownloadLangPackISO'
+        sourceUri: languagePackStorageAccountName
+        destination: '${imageFolder}\\langpack.iso'
+      }
+      {
         type: 'PowerShell'
         name: 'InstallLanguagePack'
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2022/install-languagepack.ps1'
-        sha256Checksum: 'c2e3ca6e7d95764daa528443c41f893593ae4e7864308220367103e84bbce83c'
+        sha256Checksum: '04d4225d26f94b6ad0592d2832c0e3ddcc60a99cfea30b90f0f84887e686f98a'
+      }
+      {
+        type: 'PowerShell'
+        name: 'InstallNET481FX'
+        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2022/Install-NET481.ps1'
+        sha256Checksum: 'deb45ddf190e7d89f58cad38e4873bbc201a723106c660097aa32f40f241fdc5'
+      }
+      {
+        type: 'File'
+        name: 'Copysysprep'
+        sourceUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/sysprep.ps1'
+        destination: 'c:\\DeprovisioningScript.ps1'
       }
       {
         type: 'PowerShell'
@@ -76,6 +94,12 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
       {
         type: 'WindowsRestart'
         restartTimeout: '5m'
+      }
+      {
+        type: 'PowerShell'
+        name: 'InstallNET481FXjp'
+        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows20ss/Install-NET481langpack.ps1'
+        sha256Checksum: 'bd586e7c3691ca768e8dc049c8fd58cca935bc4e85b5d34bf5b797960c7e857e'
       }
       {
         type: 'File'
@@ -159,7 +183,7 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
       type: 'PlatformImage'
       publisher: 'MicrosoftWindowsServer'
       offer: 'WindowsServer'
-      sku: '2022-datacenter-azure-edition'
+      sku: '2022-datacenter-azure-edition-hotpatch'
       version: 'latest'
     }
     validate: {
