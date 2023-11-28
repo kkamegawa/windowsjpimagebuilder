@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.23.1.45101",
-      "templateHash": "13751194586200338369"
+      "templateHash": "2549314606165999151"
     }
   },
   "parameters": {
@@ -51,7 +51,15 @@
     },
     "languagePackStorageAccountName": {
       "type": "string",
-      "defaultValue": "[format('https://stg{0}.blob.core.windows.net/iso/mul_windows_server_2022_languages_optional_features_x64_dvd_08a242b4.iso', resourceGroup().name)]"
+      "defaultValue": "publicstorage"
+    },
+    "languagePackStorageResouceGroup": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().name]"
+    },
+    "languagePackISO": {
+      "type": "string",
+      "defaultValue": "mul_windows_server_2022_languages_optional_features_x64_dvd_08a242b4.iso"
     }
   },
   "variables": {
@@ -89,15 +97,9 @@
             "inline": [
               "[format('New-Item -ItemType Directory -Path {0} -force', variables('imageFolder'))]",
               "[format('$outputPath = join-path {0} -childpath langpack.iso', variables('imageFolder'))]",
-              "[format('invoke-webclient -uri {0} -outfile $outputPath -usebasicparsing', parameters('languagePackStorageAccountName'))]"
+              "[format('invoke-webclient -uri {0} -outfile $outputPath -usebasicparsing', format('{0}/{1}', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('languagePackStorageResouceGroup')), 'Microsoft.Storage/storageAccounts', parameters('languagePackStorageAccountName')), '2023-01-01').primaryEndpoints.blob, parameters('languagePackISO')))]"
             ],
             "runElevated": false
-          },
-          {
-            "type": "File",
-            "name": "DownloadLangPackISO",
-            "sourceUri": "[parameters('languagePackStorageAccountName')]",
-            "destination": "[format('{0}\\langpack.iso', variables('imageFolder'))]"
           },
           {
             "type": "PowerShell",
