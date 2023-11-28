@@ -15,6 +15,22 @@ $fodpath = $driveLetter + ":\LanguagesAndOptionalFeatures\Microsoft-Windows-Lang
 dism /online /add-package /packagepath:$fodpath >> $log
 Wait-Process -Name dism
 
+$fodpath = $driveLetter + ":\LanguagesAndOptionalFeatures\Microsoft-Windows-LanguageFeatures-Fonts-Jpan-Package~31bf3856ad364e35~amd64~~.cab"
+dism /online /add-package /packagepath:$fodpath >> $log
+Wait-Process -Name dism
+
+$fodpath = $driveLetter + ":\LanguagesAndOptionalFeatures\Microsoft-Windows-LanguageFeatures-Handwriting-ja-jp-Package~31bf3856ad364e35~amd64~~.cab"
+dism /online /add-package /packagepath:$fodpath >> $log
+Wait-Process -Name dism
+
+$fodpath = $driveLetter + ":\LanguagesAndOptionalFeatures\Microsoft-Windows-LanguageFeatures-Speech-ja-jp-Package~31bf3856ad364e35~amd64~~.cab"
+dism /online /add-package /packagepath:$fodpath >> $log
+Wait-Process -Name dism
+
+$fodpath = $driveLetter + ":\LanguagesAndOptionalFeatures\Microsoft-Windows-LanguageFeatures-TextToSpeech-ja-jp-Package~31bf3856ad364e35~amd64~~.cab"
+dism /online /add-package /packagepath:$fodpath >> $log
+Wait-Process -Name dism
+
 # Clean file
 ## Unmount disk
 DisMount-DiskImage $downloadPath

@@ -9,7 +9,9 @@ param sharedImageRegion string = location
 param gallaryImageName string = 'sig${resourceGroup().name}ws2022'
 param imageTemplateName string = 'imageTemplate${resourceGroup().name}ws2022'
 param AzureComputingGallery string = 'sig_windows_jpimages'
-param languagePackStorageAccountName string = 'https://stg${resourceGroup().name}.blob.core.windows.net/iso/mul_windows_server_2022_languages_optional_features_x64_dvd_08a242b4.iso'
+param languagePackStorageAccountName string = 'publicstorage'
+param languagePackStorageResouceGroup string = resourceGroup().name
+param languagePackISO string = 'mul_windows_server_2022_languages_optional_features_x64_dvd_08a242b4.iso'
  
 var imageFolder = 'c:\\images'
 
@@ -18,6 +20,13 @@ resource aibManagedID 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-
 }
 
 var userIdentityID = aibManagedID.id
+
+resource lpstrorage 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
+  name: languagePackStorageAccountName
+  scope: resourceGroup(languagePackStorageResouceGroup)
+}
+
+var lpstrorageURL = '${lpstrorage.properties.primaryEndpoints.blob}/${languagePackISO}'
 
 resource gal 'Microsoft.Compute/galleries/images@2022-03-03' existing = {
   name: '${AzureComputingGallery}/${gallaryImageName}'
@@ -51,15 +60,10 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         inline: [
           'New-Item -ItemType Directory -Path ${imageFolder} -force'
           '$outputPath = join-path ${imageFolder} -childpath langpack.iso'
-          'invoke-webclient -uri ${languagePackStorageAccountName} -outfile $outputPath -usebasicparsing'
+          'invoke-webclient -uri ${lpstrorageURL} -outfile $outputPath -usebasicparsing'
+
         ]
         runElevated: false
-      }
-      {
-        type: 'File'
-        name: 'DownloadLangPackISO'
-        sourceUri: languagePackStorageAccountName
-        destination: '${imageFolder}\\langpack.iso'
       }
       {
         type: 'PowerShell'
