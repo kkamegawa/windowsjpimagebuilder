@@ -102,7 +102,7 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
       {
         type: 'PowerShell'
         name: 'InstallNET481FXjp'
-        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows20ss/Install-NET481langpack.ps1'
+        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2022/Install-NET481langpack.ps1'
         sha256Checksum: 'bd586e7c3691ca768e8dc049c8fd58cca935bc4e85b5d34bf5b797960c7e857e'
       }
       {
