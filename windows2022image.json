@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.23.1.45101",
-      "templateHash": "9561814683931598028"
+      "templateHash": "2560614546829391236"
     }
   },
   "parameters": {
@@ -208,7 +208,7 @@
         "distribute": [
           {
             "type": "SharedImage",
-            "galleryImageId": "[resourceId('Microsoft.Compute/galleries/images', split(format('{0}/{1}', parameters('AzureComputingGallery'), parameters('gallaryImageName')), '/')[0], split(format('{0}/{1}', parameters('AzureComputingGallery'), parameters('gallaryImageName')), '/')[1])]",
+            "galleryImageId": "[resourceId('Microsoft.Compute/galleries/images', split(format('{0}windowslangpack/{1}', parameters('AzureComputingGallery'), parameters('gallaryImageName')), '/')[0], split(format('{0}windowslangpack/{1}', parameters('AzureComputingGallery'), parameters('gallaryImageName')), '/')[1])]",
             "runOutputName": "winclient01",
             "artifactTags": {
               "source": "azureVmImageBuilder",
