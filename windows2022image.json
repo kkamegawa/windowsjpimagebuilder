@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.23.1.45101",
-      "templateHash": "949156569736917521"
+      "templateHash": "2980130254008999230"
     }
   },
   "parameters": {
@@ -97,7 +97,7 @@
             "inline": [
               "[format('New-Item -ItemType Directory -Path {0} -force', variables('imageFolder'))]",
               "[format('$outputPath = join-path {0} -childpath langpack.iso', variables('imageFolder'))]",
-              "[format('invoke-webclient -uri {0} -outfile $outputPath -usebasicparsing', format('{0}windowslangpack/{1}', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('languagePackStorageResouceGroup')), 'Microsoft.Storage/storageAccounts', parameters('languagePackStorageAccountName')), '2023-01-01').primaryEndpoints.blob, parameters('languagePackISO')))]"
+              "[format('invoke-WebRequest -uri {0} -outfile $outputPath -usebasicparsing', format('{0}windowslangpack/{1}', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('languagePackStorageResouceGroup')), 'Microsoft.Storage/storageAccounts', parameters('languagePackStorageAccountName')), '2023-01-01').primaryEndpoints.blob, parameters('languagePackISO')))]"
             ],
             "runElevated": false
           },
