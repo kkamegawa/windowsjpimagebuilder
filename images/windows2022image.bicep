@@ -29,7 +29,7 @@ resource lpstrorage 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
 var lpstrorageURL = '${lpstrorage.properties.primaryEndpoints.blob}/${languagePackISO}'
 
 resource gal 'Microsoft.Compute/galleries/images@2022-03-03' existing = {
-  name: '${AzureComputingGallery}/${gallaryImageName}'
+  name: '${AzureComputingGallery}windowslangpack/${gallaryImageName}'
 }
 
 resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022-07-01' = {
