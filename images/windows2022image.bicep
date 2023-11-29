@@ -60,7 +60,7 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         inline: [
           'New-Item -ItemType Directory -Path ${imageFolder} -force'
           '$outputPath = join-path ${imageFolder} -childpath langpack.iso'
-          'invoke-webclient -uri ${lpstrorageURL} -outfile $outputPath -usebasicparsing'
+          'invoke-WebRequest -uri ${lpstrorageURL} -outfile $outputPath -usebasicparsing'
 
         ]
         runElevated: false
