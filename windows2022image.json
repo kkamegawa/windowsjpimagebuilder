@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.23.1.45101",
-      "templateHash": "2560614546829391236"
+      "templateHash": "949156569736917521"
     }
   },
   "parameters": {
@@ -97,7 +97,7 @@
             "inline": [
               "[format('New-Item -ItemType Directory -Path {0} -force', variables('imageFolder'))]",
               "[format('$outputPath = join-path {0} -childpath langpack.iso', variables('imageFolder'))]",
-              "[format('invoke-webclient -uri {0} -outfile $outputPath -usebasicparsing', format('{0}/{1}', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('languagePackStorageResouceGroup')), 'Microsoft.Storage/storageAccounts', parameters('languagePackStorageAccountName')), '2023-01-01').primaryEndpoints.blob, parameters('languagePackISO')))]"
+              "[format('invoke-webclient -uri {0} -outfile $outputPath -usebasicparsing', format('{0}windowslangpack/{1}', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('languagePackStorageResouceGroup')), 'Microsoft.Storage/storageAccounts', parameters('languagePackStorageAccountName')), '2023-01-01').primaryEndpoints.blob, parameters('languagePackISO')))]"
             ],
             "runElevated": false
           },
@@ -208,7 +208,7 @@
         "distribute": [
           {
             "type": "SharedImage",
-            "galleryImageId": "[resourceId('Microsoft.Compute/galleries/images', split(format('{0}windowslangpack/{1}', parameters('AzureComputingGallery'), parameters('gallaryImageName')), '/')[0], split(format('{0}windowslangpack/{1}', parameters('AzureComputingGallery'), parameters('gallaryImageName')), '/')[1])]",
+            "galleryImageId": "[resourceId('Microsoft.Compute/galleries/images', split(format('{0}/{1}', parameters('AzureComputingGallery'), parameters('gallaryImageName')), '/')[0], split(format('{0}/{1}', parameters('AzureComputingGallery'), parameters('gallaryImageName')), '/')[1])]",
             "runOutputName": "winclient01",
             "artifactTags": {
               "source": "azureVmImageBuilder",
