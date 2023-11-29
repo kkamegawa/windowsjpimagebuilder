@@ -26,10 +26,10 @@ resource lpstrorage 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
   scope: resourceGroup(languagePackStorageResouceGroup)
 }
 
-var lpstrorageURL = '${lpstrorage.properties.primaryEndpoints.blob}/${languagePackISO}'
+var lpstrorageURL = '${lpstrorage.properties.primaryEndpoints.blob}windowslangpack/${languagePackISO}'
 
 resource gal 'Microsoft.Compute/galleries/images@2022-03-03' existing = {
-  name: '${AzureComputingGallery}windowslangpack/${gallaryImageName}'
+  name: '${AzureComputingGallery}/${gallaryImageName}'
 }
 
 resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022-07-01' = {
