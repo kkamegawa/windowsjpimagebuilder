@@ -69,7 +69,7 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         type: 'PowerShell'
         name: 'InstallLanguagePack'
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2022/install-languagepack.ps1'
-        sha256Checksum: 'bbcb473a27fc898f7847437a7c1caa36a5c84511e07d7c6eb9befa18017dfdaa'
+        sha256Checksum: 'bbb3e90197674b7cd398bbc616be17bd7cb3b12ec74983177277feec114a61d7'
       }
       {
         type: 'PowerShell'
