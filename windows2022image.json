@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.23.1.45101",
-      "templateHash": "2980130254008999230"
+      "templateHash": "764787005980976719"
     }
   },
   "parameters": {
@@ -59,7 +59,7 @@
     },
     "languagePackISO": {
       "type": "string",
-      "defaultValue": "mul_windows_server_2022_languages_optional_features_x64_dvd_08a242b4.iso"
+      "defaultValue": "mul_windows_server_2022_languages.iso"
     }
   },
   "variables": {
