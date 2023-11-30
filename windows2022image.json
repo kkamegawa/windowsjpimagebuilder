@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.23.1.45101",
-      "templateHash": "15550212172781114177"
+      "templateHash": "14847235991963080351"
     }
   },
   "parameters": {
@@ -108,12 +108,6 @@
             "sha256Checksum": "bbb3e90197674b7cd398bbc616be17bd7cb3b12ec74983177277feec114a61d7"
           },
           {
-            "type": "PowerShell",
-            "name": "InstallNET481FX",
-            "scriptUri": "https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2022/Install-NET481.ps1",
-            "sha256Checksum": "deb45ddf190e7d89f58cad38e4873bbc201a723106c660097aa32f40f241fdc5"
-          },
-          {
             "type": "File",
             "name": "Copysysprep",
             "sourceUri": "https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/sysprep.ps1",
@@ -134,12 +128,6 @@
           {
             "type": "WindowsRestart",
             "restartTimeout": "5m"
-          },
-          {
-            "type": "PowerShell",
-            "name": "InstallNET481FXjp",
-            "scriptUri": "https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2022/Install-NET481langpack.ps1",
-            "sha256Checksum": "bd586e7c3691ca768e8dc049c8fd58cca935bc4e85b5d34bf5b797960c7e857e"
           },
           {
             "type": "File",
