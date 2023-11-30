@@ -72,12 +72,6 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         sha256Checksum: 'bbb3e90197674b7cd398bbc616be17bd7cb3b12ec74983177277feec114a61d7'
       }
       {
-        type: 'PowerShell'
-        name: 'InstallNET481FX'
-        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2022/Install-NET481.ps1'
-        sha256Checksum: 'deb45ddf190e7d89f58cad38e4873bbc201a723106c660097aa32f40f241fdc5'
-      }
-      {
         type: 'File'
         name: 'Copysysprep'
         sourceUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/sysprep.ps1'
@@ -98,12 +92,6 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
       {
         type: 'WindowsRestart'
         restartTimeout: '5m'
-      }
-      {
-        type: 'PowerShell'
-        name: 'InstallNET481FXjp'
-        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2022/Install-NET481langpack.ps1'
-        sha256Checksum: 'bd586e7c3691ca768e8dc049c8fd58cca935bc4e85b5d34bf5b797960c7e857e'
       }
       {
         type: 'File'
