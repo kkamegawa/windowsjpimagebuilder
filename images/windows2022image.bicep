@@ -11,7 +11,7 @@ param imageTemplateName string = 'imageTemplate${resourceGroup().name}ws2022'
 param AzureComputingGallery string = 'sig_windows_jpimages'
 param languagePackStorageAccountName string = 'publicstorage'
 param languagePackStorageResouceGroup string = resourceGroup().name
-param languagePackISO string = 'mul_windows_server_2022_languages_optional_features_x64_dvd_08a242b4.iso'
+param languagePackISO string = 'mul_windows_server_2022_languages.iso'
  
 var imageFolder = 'c:\\images'
 
