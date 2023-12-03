@@ -7,29 +7,29 @@ Mount-DiskImage $downloadPath
 $driveLetter = (Get-DiskImage -ImagePath $downloadPath | Get-Volume).DriveLetter
 $lppath = $driveLetter + ":\LanguagesAndOptionalFeatures\Microsoft-Windows-Server-Language-Pack_x64_ja-jp.cab"
 ## install language pack
-dism /online /add-package /packagepath:$lppath >> $log
-Wait-Process -Name dism
+lpksetup.exe /i ja-JP /p $lppath /r /s
+Wait-Process -Name lpksetup
 
 # Install Features on Demand
-$fodpath = $driveLetter + ":\LanguagesAndOptionalFeatures\Microsoft-Windows-LanguageFeatures-Basic-ja-jp-Package~31bf3856ad364e35~amd64~~.cab"
-dism /online /add-package /packagepath:$fodpath >> $log
-Wait-Process -Name dism
+$lppath = $driveLetter + ":\LanguagesAndOptionalFeatures\Microsoft-Windows-LanguageFeatures-Basic-ja-jp-Package~31bf3856ad364e35~amd64~~.cab"
+lpksetup.exe /i ja-JP /p $lppath /r /s
+Wait-Process -Name lpksetup
 
-$fodpath = $driveLetter + ":\LanguagesAndOptionalFeatures\Microsoft-Windows-LanguageFeatures-Fonts-Jpan-Package~31bf3856ad364e35~amd64~~.cab"
-dism /online /add-package /packagepath:$fodpath >> $log
-Wait-Process -Name dism
+$lppath = $driveLetter + ":\LanguagesAndOptionalFeatures\Microsoft-Windows-LanguageFeatures-Fonts-Jpan-Package~31bf3856ad364e35~amd64~~.cab"
+lpksetup.exe /i ja-JP /p $lppath /r /s
+Wait-Process -Name lpksetup
 
-$fodpath = $driveLetter + ":\LanguagesAndOptionalFeatures\Microsoft-Windows-LanguageFeatures-Handwriting-ja-jp-Package~31bf3856ad364e35~amd64~~.cab"
-dism /online /add-package /packagepath:$fodpath >> $log
-Wait-Process -Name dism
+$lppath = $driveLetter + ":\LanguagesAndOptionalFeatures\Microsoft-Windows-LanguageFeatures-Handwriting-ja-jp-Package~31bf3856ad364e35~amd64~~.cab"
+lpksetup.exe /i ja-JP /p $lppath /r /s
+Wait-Process -Name lpksetup
 
-$fodpath = $driveLetter + ":\LanguagesAndOptionalFeatures\Microsoft-Windows-LanguageFeatures-Speech-ja-jp-Package~31bf3856ad364e35~amd64~~.cab"
-dism /online /add-package /packagepath:$fodpath >> $log
-Wait-Process -Name dism
+$lppath = $driveLetter + ":\LanguagesAndOptionalFeatures\Microsoft-Windows-LanguageFeatures-Speech-ja-jp-Package~31bf3856ad364e35~amd64~~.cab"
+lpksetup.exe /i ja-JP /p $lppath /r /s
+Wait-Process -Name lpksetup
 
-$fodpath = $driveLetter + ":\LanguagesAndOptionalFeatures\Microsoft-Windows-LanguageFeatures-TextToSpeech-ja-jp-Package~31bf3856ad364e35~amd64~~.cab"
-dism /online /add-package /packagepath:$fodpath >> $log
-Wait-Process -Name dism
+$lppath = $driveLetter + ":\LanguagesAndOptionalFeatures\Microsoft-Windows-LanguageFeatures-TextToSpeech-ja-jp-Package~31bf3856ad364e35~amd64~~.cab"
+lpksetup.exe /i ja-JP /p $lppath /r /s
+Wait-Process -Name lpksetup
 
 # Clean file
 ## Unmount disk
