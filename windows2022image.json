@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.23.1.45101",
-      "templateHash": "14847235991963080351"
+      "templateHash": "12885337550743531476"
     }
   },
   "parameters": {
@@ -60,11 +60,16 @@
     "languagePackISO": {
       "type": "string",
       "defaultValue": "mul_windows_server_2022_languages.iso"
+    },
+    "date": {
+      "type": "string",
+      "defaultValue": "[utcNow('yyyy.MM.ddHHmm')]"
     }
   },
   "variables": {
     "imageFolder": "c:\\images",
-    "userIdentityID": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('aibName'))]"
+    "userIdentityID": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('aibName'))]",
+    "galleyImageVersion": "[format('{0}/versions/{1}', resourceId('Microsoft.Compute/galleries/images', split(format('{0}/{1}', parameters('AzureComputingGallery'), parameters('gallaryImageName')), '/')[0], split(format('{0}/{1}', parameters('AzureComputingGallery'), parameters('gallaryImageName')), '/')[1]), parameters('date'))]"
   },
   "resources": [
     {
@@ -196,7 +201,7 @@
         "distribute": [
           {
             "type": "SharedImage",
-            "galleryImageId": "[resourceId('Microsoft.Compute/galleries/images', split(format('{0}/{1}', parameters('AzureComputingGallery'), parameters('gallaryImageName')), '/')[0], split(format('{0}/{1}', parameters('AzureComputingGallery'), parameters('gallaryImageName')), '/')[1])]",
+            "galleryImageId": "[variables('galleyImageVersion')]",
             "runOutputName": "winclient01",
             "artifactTags": {
               "source": "azureVmImageBuilder",
