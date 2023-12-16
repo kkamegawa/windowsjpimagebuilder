@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.23.1.45101",
-      "templateHash": "4149472051144446462"
+      "templateHash": "10581421187274545047"
     }
   },
   "parameters": {
@@ -102,7 +102,7 @@
             "type": "PowerShell",
             "name": "InstallNET48FX",
             "scriptUri": "https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/Install-NET48.ps1",
-            "sha256Checksum": "153558fb05f977ed20030925fc02d9aed0c56fb9cdb405a5771d81709fcec44a"
+            "sha256Checksum": "670bbb294fc55614979c110a1dfd8938f269ab36b7d4d7a2495b4e6ee4edf8ff"
           },
           {
             "type": "File",
@@ -130,7 +130,7 @@
             "type": "PowerShell",
             "name": "InstallNET48FXjp",
             "scriptUri": "https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/Install-NET48langpack.ps1",
-            "sha256Checksum": "670bbb294fc55614979c110a1dfd8938f269ab36b7d4d7a2495b4e6ee4edf8ff"
+            "sha256Checksum": "e9a3a3c956e2728faf0a6b2492ca99e8fdf71934f9efc7502a4499ee68d44877"
           },
           {
             "type": "File",
