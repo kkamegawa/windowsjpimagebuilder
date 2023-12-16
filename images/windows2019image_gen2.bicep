@@ -66,7 +66,7 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         type: 'PowerShell'
         name: 'InstallNET48FX'
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/Install-NET48.ps1'
-        sha256Checksum: '153558fb05f977ed20030925fc02d9aed0c56fb9cdb405a5771d81709fcec44a'
+        sha256Checksum: '670bbb294fc55614979c110a1dfd8938f269ab36b7d4d7a2495b4e6ee4edf8ff'
       }
       {
         type: 'File'
