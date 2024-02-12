@@ -12,13 +12,13 @@ param AzureComputingGallery string = 'sig_windows_jpimages'
  
 var imageFolder = 'c:\\images'
 
-resource aibManagedID 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
+resource aibManagedID 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-07-31-preview' existing = {
   name: aibName
 }
 
 var userIdentityID = aibManagedID.id
 
-resource gal 'Microsoft.Compute/galleries/images@2022-03-03' existing = {
+resource gal 'Microsoft.Compute/galleries/images@2022-08-03' existing = {
   name: '${AzureComputingGallery}/${gallaryImageName}'
 }
 
@@ -26,7 +26,7 @@ param date string = utcNow('yyyy.MM.ddHHmm')
 
 var galleyImageVersion = '${gal.id}/versions/${date}'
 
-resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022-07-01' = {
+resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2023-07-01' = {
   name: imageTemplateName
   location: location
   tags: {
@@ -101,12 +101,14 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         name: 'SetJaJPWelcome'
         sourceUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/ja-jp-welcome.reg'
         destination: '${imageFolder}\\ja-jp-welcome.reg'
+        sha256Checksum: '9deabf89d6eef92b3c90ae67df30dc2135db78c99145bd899da4ae6e418c04c8'
       }
       {
         type: 'File'
         name: 'SetJaJPDefault'
         sourceUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/ja-jp-default.reg'
         destination: '${imageFolder}\\ja-jp-default.reg'
+        sha256Checksum: 'ba9ef2c8e19f86c101e09d6296a324659357e654dbd5e294333cd323034e6479'
       }
       {
         type: 'PowerShell'

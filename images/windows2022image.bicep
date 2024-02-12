@@ -102,12 +102,14 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         name: 'SetJaJPWelcome'
         sourceUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/ja-jp-welcome.reg'
         destination: '${imageFolder}\\ja-jp-welcome.reg'
+        sha256Checksum: '9deabf89d6eef92b3c90ae67df30dc2135db78c99145bd899da4ae6e418c04c8'
       }
       {
         type: 'File'
         name: 'SetJaJPDefault'
         sourceUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/ja-jp-default.reg'
         destination: '${imageFolder}\\ja-jp-default.reg'
+        sha256Checksum: 'ba9ef2c8e19f86c101e09d6296a324659357e654dbd5e294333cd323034e6479'
       }
       {
         type: 'PowerShell'
