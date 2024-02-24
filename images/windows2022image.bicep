@@ -59,81 +59,26 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         sha256Checksum: '7148640bccbc7b0a99975cbc006c1087f13bc31106b9abfe21fa8a301e7ed552'
       }
       {
-        name: 'startup'
-        type: 'PowerShell'
-        inline: [
-          'New-Item -ItemType Directory -Path ${imageFolder} -force'
-          '$outputPath = join-path ${imageFolder} -childpath langpack.iso'
-          'invoke-WebRequest -uri ${lpstrorageURL} -outfile $outputPath -usebasicparsing'
-
-        ]
-        runElevated: false
-      }
-      {
         type: 'PowerShell'
         name: 'InstallLanguagePack'
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2022/install-languagepack.ps1'
-        sha256Checksum: 'bbb3e90197674b7cd398bbc616be17bd7cb3b12ec74983177277feec114a61d7'
-      }
-      {
-        type: 'File'
-        name: 'Copysysprep'
-        sourceUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/sysprep.ps1'
-        destination: 'c:\\DeprovisioningScript.ps1'
-      }
-      {
-        type: 'PowerShell'
-        name: 'ChangeLanguage1'
-        inline: [
-          'Set-WinUserLanguageList -LanguageList ja-JP,en-US -Force'
-          '$LangList = Get-WinUserLanguageList'
-          '$MarkedLang = $LangList | where LanguageTag -eq "en-US"'
-          '$LangList.Remove($MarkedLang)'
-          'Set-WinUserLanguageList $LangList -Force'
-        ]
-        runElevated: false
+        sha256Checksum: '7aa9fff747d6fd19bb47d108b9ba4f014ce219bbd124d959d93148756143b83f'
+        runElevated: true
       }
       {
         type: 'WindowsRestart'
         restartTimeout: '5m'
       }
       {
-        type: 'File'
-        name: 'SetJaJPWelcome'
-        sourceUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/ja-jp-welcome.reg'
-        destination: '${imageFolder}\\ja-jp-welcome.reg'
-        sha256Checksum: '9deabf89d6eef92b3c90ae67df30dc2135db78c99145bd899da4ae6e418c04c8'
-      }
-      {
-        type: 'File'
-        name: 'SetJaJPDefault'
-        sourceUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/ja-jp-default.reg'
-        destination: '${imageFolder}\\ja-jp-default.reg'
-        sha256Checksum: 'ba9ef2c8e19f86c101e09d6296a324659357e654dbd5e294333cd323034e6479'
-      }
-      {
         type: 'PowerShell'
-        name: 'ChangeLanguage2'
-        inline: [
-          'Set-WinUILanguageOverride -Language ja-JP'
-          'Set-WinCultureFromLanguageListOptOut -OptOut $False'
-          'Set-WinHomeLocation -GeoId 0x7A'
-          'Set-WinSystemLocale -SystemLocale ja-JP'
-          'Set-TimeZone -Id "Tokyo Standard Time"'
-          'Set-Culture ja-JP'
-        ]
-        runElevated: false
-      }
-      {
-        type: 'PowerShell'
-        name: 'ChangeDefaultLanguage'
-        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/load_registry.ps1'
-        runElevated: false
-        sha256Checksum: '3ed09b0da5a922f694a2de13f9236a71619f651b2421fe975c448596ac31a806'
+        name: 'InstallLanguagePack'
+        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2022/install-languagepack.ps1'
+        sha256Checksum: 'b927319850cecb2fb87827b5e4d20f997e90b12fce053192e883b9385c4efc42'
+        runElevated: true
       }
       {
         type: 'WindowsRestart'
-        restartTimeout: '10m'
+        restartTimeout: '5m'
       }
       {
         type: 'WindowsUpdate'
