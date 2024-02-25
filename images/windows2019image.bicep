@@ -58,33 +58,27 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
       }
       {
         type: 'PowerShell'
-        name: 'InstallLanguagePack'
-        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/install-languagepack.ps1'
-        sha256Checksum: '467cfeb5727ba216bce70b2074f214c09b201b0de005e142eaa996b60ddd0f87'
-      }
-      {
-        type: 'PowerShell'
         name: 'InstallNET48FX'
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/Install-NET48.ps1'
         sha256Checksum: '670bbb294fc55614979c110a1dfd8938f269ab36b7d4d7a2495b4e6ee4edf8ff'
       }
       {
-        type: 'File'
-        name: 'Copysysprep'
-        sourceUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/sysprep.ps1'
-        destination: 'c:\\DeprovisioningScript.ps1'
+        type: 'PowerShell'
+        name: 'InstallLanguagePack'
+        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/install-jplangpack.ps1'
+        sha256Checksum: '9671874bd2ac9b95526525fa8343866a930739b55b2e5751ae33c3e9d67ff900'
+        runElevated: true
+      }
+      {
+        type: 'WindowsRestart'
+        restartTimeout: '5m'
       }
       {
         type: 'PowerShell'
-        name: 'ChangeLanguage1'
-        inline: [
-          'Set-WinUserLanguageList -LanguageList ja-JP,en-US -Force'
-          '$LangList = Get-WinUserLanguageList'
-          '$MarkedLang = $LangList | where LanguageTag -eq "en-US"'
-          '$LangList.Remove($MarkedLang)'
-          'Set-WinUserLanguageList $LangList -Force'
-        ]
-        runElevated: false
+        name: 'InstallLanguagePack'
+        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/install-languagepack.ps1'
+        sha256Checksum: 'b927319850cecb2fb87827b5e4d20f997e90b12fce053192e883b9385c4efc42'
+        runElevated: true
       }
       {
         type: 'WindowsRestart'
@@ -95,40 +89,6 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         name: 'InstallNET48FXjp'
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/Install-NET48langpack.ps1'
         sha256Checksum: 'e9a3a3c956e2728faf0a6b2492ca99e8fdf71934f9efc7502a4499ee68d44877'
-      }
-      {
-        type: 'File'
-        name: 'SetJaJPWelcome'
-        sourceUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/ja-jp-welcome.reg'
-        destination: '${imageFolder}\\ja-jp-welcome.reg'
-        sha256Checksum: '9deabf89d6eef92b3c90ae67df30dc2135db78c99145bd899da4ae6e418c04c8'
-      }
-      {
-        type: 'File'
-        name: 'SetJaJPDefault'
-        sourceUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/ja-jp-default.reg'
-        destination: '${imageFolder}\\ja-jp-default.reg'
-        sha256Checksum: 'ba9ef2c8e19f86c101e09d6296a324659357e654dbd5e294333cd323034e6479'
-      }
-      {
-        type: 'PowerShell'
-        name: 'ChangeLanguage2'
-        inline: [
-          'Set-WinUILanguageOverride -Language ja-JP'
-          'Set-WinCultureFromLanguageListOptOut -OptOut $False'
-          'Set-WinHomeLocation -GeoId 0x7A'
-          'Set-WinSystemLocale -SystemLocale ja-JP'
-          'Set-TimeZone -Id "Tokyo Standard Time"'
-          'Set-Culture ja-JP'
-        ]
-        runElevated: false
-      }
-      {
-        type: 'PowerShell'
-        name: 'ChangeDefaultLanguage'
-        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/load_registry.ps1'
-        runElevated: false
-        sha256Checksum: '3ed09b0da5a922f694a2de13f9236a71619f651b2421fe975c448596ac31a806'
       }
       {
         type: 'WindowsRestart'

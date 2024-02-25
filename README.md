@@ -25,3 +25,4 @@
 
 - [GitHub Actions Virtual Environments](https://github.com/actions/virtual-environments)
 - [sny0421/windows-server-2019-japanese](https://github.com/sny0421/windows-server-2019-japanese)
+- [change-windows-language-regional-settings](https://github.com/tksh164/change-windows-language-regional-settings)
