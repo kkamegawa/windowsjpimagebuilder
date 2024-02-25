@@ -71,7 +71,7 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
       }
       {
         type: 'WindowsRestart'
-        restartTimeout: '5m'
+        restartTimeout: '10m'
       }
       {
         type: 'PowerShell'
@@ -82,7 +82,7 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
       }
       {
         type: 'WindowsRestart'
-        restartTimeout: '5m'
+        restartTimeout: '10m'
       }
       {
         type: 'PowerShell'

@@ -71,7 +71,7 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2023
       }
       {
         type: 'WindowsRestart'
-        restartTimeout: '5m'
+        restartTimeout: '10m'
       }
       {
         type: 'PowerShell'
@@ -79,6 +79,10 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2023
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/install-languagepack.ps1'
         sha256Checksum: 'b927319850cecb2fb87827b5e4d20f997e90b12fce053192e883b9385c4efc42'
         runElevated: true
+      }
+      {
+        type: 'WindowsRestart'
+        restartTimeout: '10m'
       }
       {
         type: 'PowerShell'
