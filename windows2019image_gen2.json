@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.25.53.49325",
-      "templateHash": "8158118406816115896"
+      "templateHash": "7654262984697726442"
     }
   },
   "parameters": {
@@ -107,7 +107,7 @@
           },
           {
             "type": "WindowsRestart",
-            "restartTimeout": "5m"
+            "restartTimeout": "10m"
           },
           {
             "type": "PowerShell",
@@ -115,6 +115,10 @@
             "scriptUri": "https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/install-languagepack.ps1",
             "sha256Checksum": "b927319850cecb2fb87827b5e4d20f997e90b12fce053192e883b9385c4efc42",
             "runElevated": true
+          },
+          {
+            "type": "WindowsRestart",
+            "restartTimeout": "10m"
           },
           {
             "type": "PowerShell",

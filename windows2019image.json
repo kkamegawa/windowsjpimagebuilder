@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.25.53.49325",
-      "templateHash": "14995613830559894033"
+      "templateHash": "9732883471276072541"
     }
   },
   "parameters": {
@@ -107,7 +107,7 @@
           },
           {
             "type": "WindowsRestart",
-            "restartTimeout": "5m"
+            "restartTimeout": "10m"
           },
           {
             "type": "PowerShell",
@@ -118,7 +118,7 @@
           },
           {
             "type": "WindowsRestart",
-            "restartTimeout": "5m"
+            "restartTimeout": "10m"
           },
           {
             "type": "PowerShell",
