@@ -3,7 +3,7 @@ param location string = resourceGroup().location
 param aibName string = 'aib-${resourceGroup().name}'
 param buildMaxTimeout int = 240
 param identityType string = 'UserAssigned'
-param vmSize string = 'Standard_D8s_v4'
+param vmSize string = 'Standard_D4s_v4'
 param sourceValidationFlag bool = false
 param sharedImageRegion string = location
 param gallaryImageName string = 'sig${resourceGroup().name}ws2019'
@@ -18,7 +18,7 @@ resource aibManagedID 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-07-
 
 var userIdentityID = aibManagedID.id
 
-resource gal 'Microsoft.Compute/galleries/images@2022-08-03' existing = {
+resource gal 'Microsoft.Compute/galleries/images@2023-07-03' existing = {
   name: '${AzureComputingGallery}/${gallaryImageName}'
 }
 
@@ -58,12 +58,6 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2023
       }
       {
         type: 'PowerShell'
-        name: 'InstallNET48FX'
-        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/Install-NET48.ps1'
-        sha256Checksum: '670bbb294fc55614979c110a1dfd8938f269ab36b7d4d7a2495b4e6ee4edf8ff'
-      }
-      {
-        type: 'PowerShell'
         name: 'InstallLanguagePack'
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/install-jplangpack.ps1'
         sha256Checksum: '9671874bd2ac9b95526525fa8343866a930739b55b2e5751ae33c3e9d67ff900'
@@ -85,30 +79,17 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2023
         restartTimeout: '10m'
       }
       {
-        type: 'PowerShell'
-        name: 'InstallNET48FXjp'
-        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/Install-NET48langpack.ps1'
-        sha256Checksum: 'e9a3a3c956e2728faf0a6b2492ca99e8fdf71934f9efc7502a4499ee68d44877'
-      }
-      {
         type: 'WindowsUpdate'
         searchCriteria: 'IsInstalled=0'
         filters: [
           'exclude:$_.Title -like \'*Preview*\''
           'include:$true'
         ]
-        updateLimit: 30
+        updateLimit: 40
       }
       {
         type: 'WindowsRestart'
         restartTimeout: '40m'
-      }
-      {
-        name: 'RunNGen'
-        type: 'PowerShell'
-        runElevated: true
-        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/Run-NGen.ps1'
-        sha256Checksum: 'cb6563088d5021ee0b309211183cdf01cf74f2cd5afc8ed8d4a2b67294fe9d70'
       }
       {
         name: 'FinalizeVM'
