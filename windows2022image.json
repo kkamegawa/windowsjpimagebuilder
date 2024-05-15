@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.25.53.49325",
-      "templateHash": "16568556471210927494"
+      "version": "0.26.170.59819",
+      "templateHash": "10917947408685869313"
     }
   },
   "parameters": {
@@ -48,18 +48,6 @@
     "AzureComputingGallery": {
       "type": "string",
       "defaultValue": "sig_windows_jpimages"
-    },
-    "languagePackStorageAccountName": {
-      "type": "string",
-      "defaultValue": "publicstorage"
-    },
-    "languagePackStorageResouceGroup": {
-      "type": "string",
-      "defaultValue": "[resourceGroup().name]"
-    },
-    "languagePackISO": {
-      "type": "string",
-      "defaultValue": "mul_windows_server_2022_languages.iso"
     },
     "date": {
       "type": "string",
