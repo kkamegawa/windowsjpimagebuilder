@@ -18,7 +18,7 @@ resource aibManagedID 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-07-
 
 var userIdentityID = aibManagedID.id
 
-resource gal 'Microsoft.Compute/galleries/images@2022-08-03' existing = {
+resource gal 'Microsoft.Compute/galleries/images@2023-07-03' existing = {
   name: '${AzureComputingGallery}/${gallaryImageName}'
 }
 
@@ -26,7 +26,7 @@ param date string = utcNow('yyyy.MM.ddHHmm')
 
 var galleyImageVersion = '${gal.id}/versions/${date}'
 
-resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2023-07-01' = {
+resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022-07-01' = {
   name: imageTemplateName
   location: location
   tags: {
@@ -64,7 +64,7 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2023
       }
       {
         type: 'PowerShell'
-        name: 'InstallLanguagePack'
+        name: 'InstallLanguagePack1'
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/install-jplangpack.ps1'
         sha256Checksum: '9671874bd2ac9b95526525fa8343866a930739b55b2e5751ae33c3e9d67ff900'
         runElevated: true
@@ -75,7 +75,7 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2023
       }
       {
         type: 'PowerShell'
-        name: 'InstallLanguagePack'
+        name: 'InstallLanguagePack2'
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/install-languagepack.ps1'
         sha256Checksum: 'b927319850cecb2fb87827b5e4d20f997e90b12fce053192e883b9385c4efc42'
         runElevated: true
