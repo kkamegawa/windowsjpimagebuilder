@@ -26,7 +26,7 @@ param date string = utcNow('yyyy.MM.ddHHmm')
 
 var galleyImageVersion = '${gal.id}/versions/${date}'
 
-resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022-07-01' = {
+resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2023-07-01' = {
   name: imageTemplateName
   location: location
   tags: {
