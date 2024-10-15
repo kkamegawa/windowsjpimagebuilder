@@ -26,7 +26,7 @@ param date string = utcNow('yyyy.MM.ddHHmm')
 
 var galleyImageVersion = '${gal.id}/versions/${date}'
 
-resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2023-07-01' = {
+resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024-02-01' = {
   name: imageTemplateName
   location: location
   tags: {
@@ -47,6 +47,14 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2023
         runElevated: true
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Initialize-VM.ps1'
         sha256Checksum: '7148640bccbc7b0a99975cbc006c1087f13bc31106b9abfe21fa8a301e7ed552'
+      }
+      {
+        name: 'remove 65330/udp port'
+        type: 'PowerShell'
+        runElevated: true
+        inline: [
+          'netsh int ipv4 add excludedportrange udp 65330 1 persistent'
+        ]
       }
       {
         type: 'PowerShell'
