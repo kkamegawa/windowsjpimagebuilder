@@ -49,6 +49,14 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
         sha256Checksum: '7148640bccbc7b0a99975cbc006c1087f13bc31106b9abfe21fa8a301e7ed552'
       }
       {
+        name: 'Install Japanese Language Pack'
+        type: 'PowerShell'
+        runElevated: true
+        inline: [
+          'Install-Language -Language ja-JP'
+        ]
+      }
+      {
         name: 'remove 65330/udp port'
         type: 'PowerShell'
         runElevated: true
@@ -57,7 +65,14 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
         ]
       }
       {
-        name: 'install language pack'
+        type: 'PowerShell'
+        name: 'InstallLanguagePack'
+        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2022/install-jplangpack.ps1'
+        sha256Checksum: '7aa9fff747d6fd19bb47d108b9ba4f014ce219bbd124d959d93148756143b83f'
+        runElevated: true
+      }
+      {
+        name: 'exclude 65330/udp port'
         type: 'PowerShell'
         runElevated: true
         inline: [
@@ -70,7 +85,7 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
       }
       {
         type: 'PowerShell'
-        name: 'Setup default language(ja-jp)'
+        name: 'InstallLanguagePack'
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2022/install-languagepack.ps1'
         sha256Checksum: 'b927319850cecb2fb87827b5e4d20f997e90b12fce053192e883b9385c4efc42'
         runElevated: true
