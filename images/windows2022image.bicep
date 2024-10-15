@@ -10,8 +10,6 @@ param gallaryImageName string = 'sig${resourceGroup().name}ws2022'
 param imageTemplateName string = 'imageTemplate${resourceGroup().name}ws2022'
 param AzureComputingGallery string = 'sig_windows_jpimages'
  
-var imageFolder = 'c:\\images'
-
 resource aibManagedID 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-07-31-preview' existing = {
   name: aibName
 }
@@ -98,13 +96,6 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Finalize-VM.ps1'
         sha256Checksum: 'a4d93afb23f72fafa8b13285cf56c31975e62a39bb536ec80a4ab6e23b620e32'
       }
-      {
-        type: 'PowerShell'
-        name: 'cleanup'
-        inline: [
-          'remove-item -path ${imageFolder} -recurse -force'
-        ]
-      }
     ]
     distribute: [
       {
@@ -129,15 +120,6 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
     }
     validate: {
       continueDistributeOnFailure: false
-      inVMValidations: [
-        {
-          name: 'string'
-          type: 'PowerShell'
-          inline: [
-            'Get-ChildItem -Path ${imageFolder}'
-          ]
-        }
-      ]
       sourceValidationOnly: sourceValidationFlag
     }
     vmProfile: {
