@@ -49,14 +49,6 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
         sha256Checksum: '7148640bccbc7b0a99975cbc006c1087f13bc31106b9abfe21fa8a301e7ed552'
       }
       {
-        name: 'Install Japanese Language Pack'
-        type: 'PowerShell'
-        runElevated: true
-        inline: [
-          'Install-Language -Language ja-JP'
-        ]
-      }
-      {
         name: 'remove 65330/udp port'
         type: 'PowerShell'
         runElevated: true
