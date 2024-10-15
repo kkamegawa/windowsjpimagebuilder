@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.28.1.47646",
-      "templateHash": "9198683926442306116"
+      "version": "0.30.23.60470",
+      "templateHash": "14208963059404138848"
     }
   },
   "parameters": {
@@ -62,7 +62,7 @@
   "resources": [
     {
       "type": "Microsoft.VirtualMachineImages/imageTemplates",
-      "apiVersion": "2023-07-01",
+      "apiVersion": "2024-02-01",
       "name": "[parameters('imageTemplateName')]",
       "location": "[parameters('location')]",
       "tags": {
@@ -83,6 +83,14 @@
             "runElevated": true,
             "scriptUri": "https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Initialize-VM.ps1",
             "sha256Checksum": "7148640bccbc7b0a99975cbc006c1087f13bc31106b9abfe21fa8a301e7ed552"
+          },
+          {
+            "name": "remove 65330/udp port",
+            "type": "PowerShell",
+            "runElevated": true,
+            "inline": [
+              "netsh int ipv4 add excludedportrange udp 65330 1 persistent"
+            ]
           },
           {
             "type": "PowerShell",
