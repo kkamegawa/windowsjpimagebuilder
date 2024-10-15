@@ -72,14 +72,6 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
         runElevated: true
       }
       {
-        name: 'exclude 65330/udp port'
-        type: 'PowerShell'
-        runElevated: true
-        inline: [
-          'Install-Language -Language ja-JP'
-        ]
-      }
-      {
         type: 'WindowsRestart'
         restartTimeout: '5m'
       }
