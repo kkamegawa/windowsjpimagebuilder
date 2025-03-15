@@ -20,6 +20,7 @@ jobs:
     vmImage: 'ubuntu-latest'
   steps:
   - task: AzureCLI@2
+    name: buildtempaltetask
     displayName: 'Build Windows Server 2022 Image Template'
     inputs:
       azureSubscription: 'AzureDevOpsEvalations'
@@ -27,12 +28,14 @@ jobs:
       scriptLocation: 'inlineScript'
       inlineScript: | 
         az deployment group create --resource-group communitypublic  \
-           --template-file images/windows2022image.bicep \ 
+           --template-file ./images/windows2022image.bicep \ 
            --parameters aibName=aib-communityimagecreator \
              gallaryImageName=imgws2022jp \ 
              imageTemplateName=itws2022jpeast \ 
              AzureComputingGallery=sig_windows_jajp
   - task: AzureCLI@2
+    name: buildimagetask 
+    condition: succeeded('buildtempaltetask')
     displayName: 'create Azure Windows Server 2022 Image'
     inputs:
       azureSubscription: 'AzureDevOpsEvalations'
