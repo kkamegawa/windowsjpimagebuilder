@@ -1,0 +1,45 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- none
+
+schedules:
+- cron: "8 0 16 * *"
+  displayName: Monthly build schedule
+  branches:
+    include:
+    - main
+
+jobs:
+- job: DeployWindows2022Image
+  displayName: Deploy Windows 2022 Image to Azure
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+  - task: AzureCLI@2
+    displayName: 'Build Windows Server 2022 Image Template'
+    inputs:
+      azureSubscription: 'AzureDevOpsEvalations'
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: | 
+        az deployment group create --resource-group communitypublic  \
+           --template-file images/windows2022image.bicep \ 
+           --parameters aibName=aib-communityimagecreator \
+             gallaryImageName=imgws2022jp \ 
+             imageTemplateName=itws2022jpeast \ 
+             AzureComputingGallery=sig_windows_jajp
+  - task: AzureCLI@2
+    displayName: 'create Azure Windows Server 2022 Image'
+    inputs:
+      azureSubscription: 'AzureDevOpsEvalations'
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: | 
+        az image builder run \
+          --resource-group communitypublic \
+          --image-template itws2022jpeast \
+          --no-wait
