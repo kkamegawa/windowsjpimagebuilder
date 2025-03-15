@@ -23,7 +23,7 @@ jobs:
     displayName: 'Build Windows Server 2022 Image Template'
     inputs:
       azureSubscription: 'AzureDevOpsEvalations'
-      scriptType: 'bash'
+      scriptType: pscore
       scriptLocation: 'inlineScript'
       inlineScript: | 
         az deployment group create --resource-group communitypublic  \
@@ -37,7 +37,7 @@ jobs:
     displayName: 'create Azure Windows Server 2022 Image'
     inputs:
       azureSubscription: 'AzureDevOpsEvalations'
-      scriptType: 'bash'
+      scriptType: 'pscore'
       scriptLocation: 'inlineScript'
       inlineScript: | 
         az image builder run \
