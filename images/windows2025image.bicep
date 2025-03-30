@@ -124,7 +124,7 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
         runOutputName: 'winclient01'
         artifactTags: {
             source: 'azureVmImageBuilder'
-            baseosimg: 'windows2022'
+            baseosimg: 'windows2025'
         }
         replicationRegions: [
           sharedImageRegion
@@ -135,7 +135,7 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
       type: 'PlatformImage'
       publisher: 'MicrosoftWindowsServer'
       offer: 'WindowsServer'
-      sku: '2022-datacenter-azure-edition-hotpatch'
+      sku: '2025-datacenter-azure-edition'
       version: 'latest'
     }
     validate: {
