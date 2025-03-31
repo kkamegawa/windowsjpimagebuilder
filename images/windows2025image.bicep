@@ -75,7 +75,7 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
         type: 'PowerShell'
         runElevated: true
         inline: [
-          'install-language ja-jp -CopyTosettings'
+          'install-language ja-jp'
         ]
       }
       {
