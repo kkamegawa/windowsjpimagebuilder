@@ -75,14 +75,17 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
         type: 'PowerShell'
         runElevated: true
         inline: [
-          'install-language ja-jp -CopyTosettings'
+          'Install-Language -Language ja-JP -CopyToSettings -Verbose'
         ]
+      }
+      {
+        type: 'WindowsRestart'
+        restartTimeout: '20m'
       }
       {
         type: 'PowerShell'
         name: 'Set ja-jp as default'
-        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2025/install-languagepack.ps1'
-        sha256Checksum: 'b927319850cecb2fb87827b5e4d20f997e90b12fce053192e883b9385c4efc42'
+  scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/Windows2025jp/images/Windows2025/install-languagepack.ps1'
         runElevated: true
       }
       {
