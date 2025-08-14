@@ -52,14 +52,14 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
         type: 'PowerShell'
         name: 'Install .NET Framework 4.8.1'
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2025/Install-NET481.ps1'
-        sha256Checksum: 'D076779C2234FFE2C7B8A61865EF2D51AD6BA8036B92CB8861189C9EA71CC79E'
+        sha256Checksum: 'd076779c2234ffe2c7b8a61865ef2d51ad6ba8036b92cb8861189c9ea71cc79e'
         runElevated: true
       }
       {
         type: 'PowerShell'
         name: 'Install .NET Framework 4.8.1 Language Pack'
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2025/Install-NET481langpack.ps1'
-        sha256Checksum: '670EA4909A9EC5F6323D6C7DF50BF906861FC3ABD21BC70E8A141F3DB64BE58C'
+        sha256Checksum: '670ea4909a9ec5f6323d6c7df50bf906861fc3abd21bc70e8a141f3db64be58c'
         runElevated: true
       }
       {
@@ -75,15 +75,19 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
         type: 'PowerShell'
         runElevated: true
         inline: [
-          'install-language ja-jp -CopyTosettings'
+          'Install-Language -Language ja-JP -CopyToSettings -Verbose'
         ]
+      }
+      {
+        type: 'WindowsRestart'
+        restartTimeout: '20m'
       }
       {
         type: 'PowerShell'
         name: 'Set ja-jp as default'
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2025/install-languagepack.ps1'
-        sha256Checksum: 'b927319850cecb2fb87827b5e4d20f997e90b12fce053192e883b9385c4efc42'
         runElevated: true
+        sha256Checksum: '134b68c671eea15dd969cacf135c20d3bb8287dfe10460782cd9d309697258b6'
       }
       {
         type: 'WindowsRestart'
@@ -124,7 +128,7 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
         runOutputName: 'winclient01'
         artifactTags: {
             source: 'azureVmImageBuilder'
-            baseosimg: 'windows2022'
+            baseosimg: 'windows2025'
         }
         replicationRegions: [
           sharedImageRegion
@@ -135,7 +139,7 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
       type: 'PlatformImage'
       publisher: 'MicrosoftWindowsServer'
       offer: 'WindowsServer'
-      sku: '2022-datacenter-azure-edition-hotpatch'
+      sku: '2025-datacenter-azure-edition'
       version: 'latest'
     }
     validate: {
