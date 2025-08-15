@@ -7,8 +7,8 @@ trigger:
 - none
 
 schedules:
-- cron: "8 0 15 * *"
-  displayName: Monthly build schedule
+- cron: "0 16 8-14 * 2"
+  displayName: Weekly build schedule - Second Tuesday of each month at 9 AM PT
   branches:
     include:
     - main
@@ -19,6 +19,22 @@ jobs:
   pool:
     vmImage: 'ubuntu-latest'
   steps:
+  - task: AzureCLI@2
+    displayName: 'Delete existing Windows Server 2022 Image Template if exists'
+    inputs:
+      azureSubscription: 'AzureDevOpsEvalations'
+      scriptType: pscore
+      scriptLocation: 'inlineScript'
+      inlineScript: | 
+        $templateExists = az image builder show --resource-group communitypublic --name itws2022jpeast --query "name" -o tsv 2>$null
+        if ($templateExists) {
+          Write-Host "Existing image template 'itws2022jpeast' found. Deleting..."
+          az image builder delete --resource-group communitypublic --name itws2022jpeast
+          Write-Host "Image template deleted successfully."
+        } else {
+          Write-Host "No existing image template 'itws2022jpeast' found."
+        }
+    continueOnError: true
   - task: AzureCLI@2
     displayName: 'Build Windows Server 2022 Image Template'
     inputs:
@@ -36,3 +52,42 @@ jobs:
       scriptLocation: 'inlineScript'
       inlineScript: | 
         az image builder run --resource-group communitypublic --name itws2022jpeast --no-wait
+
+- job: DeployWindows2025Image
+  displayName: Deploy Windows 2025 Image to Azure
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+  - task: AzureCLI@2
+    displayName: 'Delete existing Windows Server 2025 Image Template if exists'
+    inputs:
+      azureSubscription: 'AzureDevOpsEvalations'
+      scriptType: pscore
+      scriptLocation: 'inlineScript'
+      inlineScript: | 
+        $templateExists = az image builder show --resource-group communitypublic --name itws2025jpeast --query "name" -o tsv 2>$null
+        if ($templateExists) {
+          Write-Host "Existing image template 'itws2025jpeast' found. Deleting..."
+          az image builder delete --resource-group communitypublic --name itws2025jpeast
+          Write-Host "Image template deleted successfully."
+        } else {
+          Write-Host "No existing image template 'itws2025jpeast' found."
+        }
+    continueOnError: true
+  - task: AzureCLI@2
+    displayName: 'Build Windows Server 2025 Image Template'
+    inputs:
+      azureSubscription: 'AzureDevOpsEvalations'
+      scriptType: pscore
+      scriptLocation: 'inlineScript'
+      inlineScript: | 
+        az deployment group create --resource-group communitypublic --template-file $(build.SourcesDirectory)/images/windows2025image.bicep --parameters aibName=aib-communityimagecreator gallaryImageName=imgws2025jp imageTemplateName=itws2025jpeast AzureComputingGallery=sig_windows_jajp
+  - task: AzureCLI@2
+    condition: succeeded()
+    displayName: 'create Azure Windows Server 2025 Image'
+    inputs:
+      azureSubscription: 'AzureDevOpsEvalations'
+      scriptType: 'pscore'
+      scriptLocation: 'inlineScript'
+      inlineScript: | 
+        az image builder run --resource-group communitypublic --name itws2025jpeast --no-wait
