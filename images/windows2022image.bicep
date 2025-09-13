@@ -9,8 +9,23 @@ param sharedImageRegion string = location
 param gallaryImageName string = 'sig${resourceGroup().name}ws2022'
 param imageTemplateName string = 'imageTemplate${resourceGroup().name}ws2022'
 param AzureComputingGallery string = 'sig_windows_jpimages'
+@description('Git branch or commit SHA (only this segment is variable) used under raw.githubusercontent.com for script download.')
+param repoBranch string = 'Windows2022jp'
+
+@description('SHA256 of Initialize-VM.ps1 for integrity validation; leave blank to omit property.')
+param initScriptChecksum string = '7148640BCCBC7B0A99975CBC006C1087F13BC31106B9ABFE21FA8A301E7ED552'
+@description('SHA256 of install-jplangpack.ps1 for integrity validation; leave blank to omit.')
+param installJpLangPackChecksum string = 'A590BC9AD1317D0DF92A0F028CCECB1C7695AD473C66F1D67E6752D21C123890'
+@description('SHA256 of install-languagepack.ps1 for integrity validation; leave blank to omit.')
+param configureLangChecksum string = '4F31472CDE5AD434B03C9AF05418C235FB6959470273829817D2A913D15E12ED'
+@description('SHA256 of Finalize-VM.ps1 for integrity validation; leave blank to omit.')
+param finalizeScriptChecksum string = 'A4D93AFB23F72FAFA8B13285CF56C31975E62A39BB536EC80A4AB6E23B620E32'
  
 var imageFolder = 'c:\\images'
+// Fixed repo coordinates; only branch/commit changes via repoBranch
+var repoOwner = 'kkamegawa'
+var repoName  = 'windowsjpimagebuilder'
+var scriptBaseUri = 'https://raw.githubusercontent.com/${repoOwner}/${repoName}/${repoBranch}/images'
 
 resource aibManagedID 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-07-31-preview' existing = {
   name: aibName
@@ -45,8 +60,8 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
         name: 'InitializeVM'
         type: 'PowerShell'
         runElevated: true
-        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Initialize-VM.ps1'
-        sha256Checksum: '7148640bccbc7b0a99975cbc006c1087f13bc31106b9abfe21fa8a301e7ed552'
+        scriptUri: '${scriptBaseUri}/common/Initialize-VM.ps1'
+        sha256Checksum: empty(initScriptChecksum) ? null : initScriptChecksum
       }
       {
         name: 'remove 65330/udp port'
@@ -59,9 +74,9 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
       {
         type: 'PowerShell'
         name: 'InstallLanguagePack'
-        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2022/install-jplangpack.ps1'
-        sha256Checksum: '7aa9fff747d6fd19bb47d108b9ba4f014ce219bbd124d959d93148756143b83f'
         runElevated: true
+          scriptUri: '${scriptBaseUri}/Windows2022/install-jplangpack.ps1'
+          sha256Checksum: empty(installJpLangPackChecksum) ? null : installJpLangPackChecksum
       }
       {
         type: 'WindowsRestart'
@@ -70,9 +85,9 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
       {
         type: 'PowerShell'
         name: 'InstallLanguagePack'
-        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2022/install-languagepack.ps1'
-        sha256Checksum: 'b927319850cecb2fb87827b5e4d20f997e90b12fce053192e883b9385c4efc42'
         runElevated: true
+          scriptUri: '${scriptBaseUri}/Windows2022/install-languagepack.ps1'
+          sha256Checksum: empty(configureLangChecksum) ? null : configureLangChecksum
       }
       {
         type: 'WindowsRestart'
@@ -95,8 +110,8 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
         name: 'FinalizeVM'
         type: 'PowerShell'
         runElevated: true
-        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Finalize-VM.ps1'
-        sha256Checksum: 'a4d93afb23f72fafa8b13285cf56c31975e62a39bb536ec80a4ab6e23b620e32'
+        scriptUri: '${scriptBaseUri}/common/Finalize-VM.ps1'
+        sha256Checksum: empty(finalizeScriptChecksum) ? null : finalizeScriptChecksum
       }
       {
         type: 'PowerShell'

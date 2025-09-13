@@ -1,96 +1,81 @@
-function Set-LanguageOptions
-{
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string] $UserLocale,
+<#+
+    Configure Japanese (ja-JP) for Windows Server 2022 after language pack installation + reboot.
 
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string] $InputLanguageID,
+    This script mirrors the Windows2025 approach using the International module
+    rather than the legacy intl.cpl XML method.
 
-        [Parameter(Mandatory = $true)]
-        [int] $LocationGeoId,
+    Expected run order in AIB:
+      (1) install-jplangpack.ps1  -> installs language/capabilities
+      (2) WindowsRestart          -> ensures components staged
+      (3) THIS script              -> sets per-user + system + default
+      (4) WindowsRestart          -> ensures logon UI picks up changes
 
-        [Parameter(Mandatory = $true)]
-        [bool] $CopySettingsToSystemAccount,
+    If logon screen still appears in English, you can enable the optional
+    registry fallback section near the bottom (commented out by default).
+#>
 
-        [Parameter(Mandatory = $true)]
-        [bool] $CopySettingsToDefaultUserAccount,
+[CmdletBinding()] param()
+$ErrorActionPreference = 'Stop'
 
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string] $SystemLocale
-    )
+$Lang      = 'ja-JP'
+$GeoId     = 122  # Japan
+$TimeZone  = 'Tokyo Standard Time'
+$InputTip  = '0411:00000411'  # Japanese IME
 
-    # Reference:
-    # - Guide to Windows Vista Multilingual User Interface
-    #   https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-vista/cc721887(v=ws.10)
-    $xmlFileContentTemplate = @'
-<gs:GlobalizationServices xmlns:gs="urn:longhornGlobalizationUnattend">
-    <gs:UserList>
-        <gs:User UserID="Current" CopySettingsToSystemAcct="{0}" CopySettingsToDefaultUserAcct="{1}"/>
-    </gs:UserList>
-    <gs:UserLocale>
-        <gs:Locale Name="{2}" SetAsCurrent="true"/>
-    </gs:UserLocale>
-    <gs:InputPreferences>
-        <gs:InputLanguageID Action="add" ID="{3}" Default="true"/>
-    </gs:InputPreferences>
-    <gs:MUILanguagePreferences>
-        <gs:MUILanguage Value="{2}"/>
-        <gs:MUIFallback Value="en-US"/>
-    </gs:MUILanguagePreferences>
-    <gs:LocationPreferences>
-        <gs:GeoID Value="{4}"/>
-    </gs:LocationPreferences>
-    <gs:SystemLocale Name="{5}"/>
-</gs:GlobalizationServices>
-'@
+Write-Host '[LangConfig] Starting locale configuration'
 
-    # Create the XML file content.
-    $fillValues = @(
-        $CopySettingsToSystemAccount.ToString().ToLowerInvariant(),
-        $CopySettingsToDefaultUserAccount.ToString().ToLowerInvariant(),
-        $UserLocale,
-        $InputLanguageID,
-        $LocationGeoId,
-        $SystemLocale
-    )
-    $xmlFileContent = $xmlFileContentTemplate -f $fillValues
-
-    Write-Verbose -Message ('MUI XML: {0}' -f $xmlFileContent)
-
-    # Create a new XML file and set the content.
-    $xmlFileFilePath = Join-Path -Path $env:TEMP -ChildPath ((New-Guid).Guid + '.xml')
-    Set-Content -LiteralPath $xmlFileFilePath -Encoding UTF8 -Value $xmlFileContent
-
-    # Copy the current user language settings to the default user account and system user account.
-    $procStartInfo = New-Object -TypeName 'System.Diagnostics.ProcessStartInfo' -ArgumentList 'C:\Windows\System32\control.exe', ('intl.cpl,,/f:"{0}"' -f $xmlFileFilePath)
-    $procStartInfo.UseShellExecute = $false
-    $procStartInfo.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Minimized
-    $proc = [System.Diagnostics.Process]::Start($procStartInfo)
-    $proc.WaitForExit()
-    $proc.Dispose()
-
-    # Delete the XML file.
-    Remove-Item -LiteralPath $xmlFileFilePath -Force
+# 1. Validate language installed (previous step should have done this)
+try {
+    $installed = Get-InstalledLanguage -Language $Lang -ErrorAction Stop
+    Write-Host "[LangConfig] Language $Lang installed." 
+} catch {
+    Write-Error "[LangConfig] Language $Lang not installed. Run install-jplangpack.ps1 earlier + reboot. $_"
+    exit 1
 }
 
-# Set the current user's language options and copy it to the default user account and system account. Also, set the system locale.
-#
-# References:
-# - Default Input Profiles (Input Locales) in Windows
-#   https://docs.microsoft.com/en-us/windows-hardware/manufacture/desktop/default-input-locales-for-windows-language-packs
-# - Table of Geographical Locations
-#   https://docs.microsoft.com/en-us/windows/win32/intl/table-of-geographical-locations
-$params = @{
-    UserLocale                       = 'ja-JP'
-    InputLanguageID                  = '0411:{03B5835F-F03C-411B-9CE2-AA23E1171E36}{A76C93D9-5523-4E90-AAFA-4DB112F9AC76}'
-    LocationGeoId                    = 122  # Japan
-    CopySettingsToSystemAccount      = $true
-    CopySettingsToDefaultUserAccount = $true
-    SystemLocale                     = 'ja-JP'
+# 2. User language list
+$userLangList = New-WinUserLanguageList -Language $Lang
+if ($userLangList[0].InputMethodTips -notcontains $InputTip) {
+    $userLangList[0].InputMethodTips.Add($InputTip) | Out-Null
 }
-Set-LanguageOptions @params -Verbose
+Set-WinUserLanguageList -LanguageList $userLangList -Force | Out-Null
+Write-Host '[LangConfig] Set user language list.'
+
+# 3. UI override
+Set-WinUILanguageOverride -Language $Lang
+Write-Host '[LangConfig] UI language override set.'
+
+# 4. Culture / system locale
+Set-Culture -CultureInfo $Lang
+Set-WinHomeLocation -GeoId $GeoId
+Set-WinSystemLocale -SystemLocale $Lang
+Write-Host '[LangConfig] Culture, home location, and system locale set.'
+
+# 5. Time zone (optional)
+try {
+    Set-TimeZone -Name $TimeZone
+    Write-Host "[LangConfig] Time zone set to $TimeZone"
+} catch { Write-Warning "[LangConfig] Time zone change failed: $_" }
+
+# 6. Copy to system + default (Welcome screen & new users)
+try {
+    Copy-UserInternationalSettingsToSystem -WelcomeScreen $true -NewUser $true
+    Write-Host '[LangConfig] Copied international settings to System & Default.'
+} catch { Write-Warning "[LangConfig] Copy-UserInternationalSettingsToSystem failed: $_" }
+
+# 7. Optional fallback: force PreferredUILanguages to only ja-JP if logon screen remains English
+#    Enable only if necessary.
+<#
+try {
+    $muiSettingsPath = 'HKLM:\SYSTEM\CurrentControlSet\Control\MUI\Settings'
+    $pref = (Get-ItemProperty -Path $muiSettingsPath -Name PreferredUILanguages -ErrorAction SilentlyContinue).PreferredUILanguages
+    if ($null -eq $pref -or ($pref -notcontains $Lang) -or ($pref.Count -gt 1)) {
+        Write-Host '[LangConfig] Adjusting PreferredUILanguages registry to only ja-JP'
+        New-Item -Path $muiSettingsPath -Force | Out-Null
+        Set-ItemProperty -Path $muiSettingsPath -Name PreferredUILanguages -Value ([string[]]@($Lang))
+    }
+} catch { Write-Warning "[LangConfig] Fallback registry PreferredUILanguages adjustment failed: $_" }
+#>
+
+Write-Host '[LangConfig] Completed. Reboot recommended now.'
+exit 0

@@ -1,78 +1,95 @@
-function Invoke-LanguagePackCabFileDownload
-{
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string] $LangPackIsoUri,
+<#+
+    Purpose:
+      Install Japanese (ja-JP) language pack & related capabilities on Windows Server 2022.
+      This script is intended to run in an Azure Image Builder (AIB) customization step
+      BEFORE applying user/system locale overrides (which occur in a separate script
+      such as install-languagepack.ps1) and followed by a reboot.
 
-        [Parameter(Mandatory = $true)]
-        [long] $OffsetToCabFileInIsoFile,
+    Recommended AIB sequence:
+      1. Run this script (language + capabilities install)
+      2. WindowsRestart customizer
+      3. Run install-languagepack.ps1 (sets UI/culture/system locale & copies to system)
+      4. WindowsRestart customizer
+      5. Generalize / image capture
 
-        [Parameter(Mandatory = $true)]
-        [long] $CabFileSize,
+    Notes:
+      - Uses Install-Language when available; falls back to capability adds if not.
+      - Idempotent: skips items already present.
+      - Avoids manual partial ISO fetch (was brittle & hash-dependent).
 
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string] $CabFileHash,
+    Verification after reboot:
+      Get-InstalledLanguage | Where Language -eq 'ja-JP'
+      Get-WindowsCapability -Online | Where-Object Name -like '*ja-JP*' | Where-Object State -eq Installed
 
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string] $DestinationFilePath
-    )
+    Exit codes:
+      0 success / 1 failure installing core language.
+#>
 
-    $request = [System.Net.HttpWebRequest]::Create($LangPackIsoUri)
-    $request.Method = 'GET'
+[CmdletBinding()] param()
+$ErrorActionPreference = 'Stop'
 
-    # Set the language pack CAB file data range.
-    $request.AddRange('bytes', $OffsetToCabFileInIsoFile, $OffsetToCabFileInIsoFile + $CabFileSize - 1)
+$Lang      = 'ja-JP'
+$Capabilities = @(
+    'Language.Basic~~~ja-JP~0.0.1.0'
+    'Language.Fonts.Jpan~~~und-JPAN~0.0.1.0'
+    'Language.OCR~~~ja-JP~0.0.1.0'
+    'Language.Handwriting~~~ja-JP~0.0.1.0'       # Optional handwriting
+    'Language.Speech~~~ja-JP~0.0.1.0'            # Optional speech
+    'Language.TextToSpeech~~~ja-JP~0.0.1.0'      # Optional TTS
+)
 
-    # Donwload the language pack CAB file.
-    $response = $request.GetResponse()
-    $reader = New-Object -TypeName 'System.IO.BinaryReader' -ArgumentList $response.GetResponseStream()
-    $fileStream = [System.IO.File]::Create($DestinationFilePath)
-    $contents = $reader.ReadBytes($response.ContentLength)
-    $fileStream.Write($contents, 0, $contents.Length)
-    $fileStream.Dispose()
-    $reader.Dispose()
-    $response.Close()
-    $response.Dispose()
+Write-Host "[LangInstall] Starting Japanese language installation for $Lang"
 
-    # Verify integrity of the downloaded language pack CAB file.
-    $fileHash = Get-FileHash -Algorithm SHA1 -LiteralPath $DestinationFilePath
-    if ($fileHash.Hash -ne $CabFileHash) {
-        throw ('The file hash of the language pack CAB file "{0}" is not match to expected value. The download was may failed.') -f $DestinationFilePath
+# Helper to install a capability if missing
+function Install-CapabilityIfNeeded {
+    param([Parameter(Mandatory)][string]$Name)
+    $cap = Get-WindowsCapability -Online -Name $Name -ErrorAction SilentlyContinue
+    if ($cap -and $cap.State -eq 'Installed') {
+        Write-Host "[LangInstall] Capability already installed: $Name"
+        return
     }
+    Write-Host "[LangInstall] Installing capability: $Name"
+    Add-WindowsCapability -Online -Name $Name -ErrorAction Stop | Out-Null
 }
 
-# Download the language pack CAB file for Japanese.
-#
-# Reference:
-# - Windows Server 2022 - Evaluation Center
-#   https://www.microsoft.com/en-us/evalcenter/evaluate-windows-server-2022
-$langPackFilePath = Join-Path -Path $env:TEMP -ChildPath 'Microsoft-Windows-Server-Language-Pack_x64_ja-jp.cab'
-$params = @{
-    LangPackIsoUri           = 'https://software-static.download.prss.microsoft.com/pr/download/20348.1.210507-1500.fe_release_amd64fre_SERVER_LOF_PACKAGES_OEM.iso'
-    OffsetToCabFileInIsoFile = 0x107d35800L
-    CabFileSize              = 54130307
-    CabFileHash              = '298667B848087EA1377F483DC15597FD5F38A492'
-    DestinationFilePath      = $langPackFilePath
+# Try modern Install-Language (Server 2022 supports it via LanguagePackManagement PowerShell 5.1 update)
+$installLanguageCmd = Get-Command -Name Install-Language -ErrorAction SilentlyContinue
+if ($installLanguageCmd) {
+    $already = Get-InstalledLanguage -Language $Lang -ErrorAction SilentlyContinue
+    if (-not $already) {
+        Write-Host "[LangInstall] Using Install-Language for $Lang"
+        try {
+            Install-Language -Language $Lang -Force -ErrorAction Stop | Out-Null
+        } catch {
+            Write-Warning "[LangInstall] Install-Language failed: $_. Falling back to capabilities path."
+        }
+    } else {
+        Write-Host "[LangInstall] Language $Lang already installed (Install-Language path)."
+    }
+} else {
+    Write-Host "[LangInstall] Install-Language cmdlet not found. Using capability-only path."
 }
-Invoke-LanguagePackCabFileDownload @params -Verbose
 
-# Install the language pack.
-Add-WindowsPackage -Online -NoRestart -PackagePath $langPackFilePath -Verbose
+# Ensure Basic at least
+Install-CapabilityIfNeeded -Name 'Language.Basic~~~ja-JP~0.0.1.0'
 
-# Delete the language pack CAB file.
-Remove-Item -LiteralPath $langPackFilePath -Force -Verbose
+# Remaining capabilities
+foreach ($c in $Capabilities | Where-Object { $_ -ne 'Language.Basic~~~ja-JP~0.0.1.0' }) {
+    try { Install-CapabilityIfNeeded -Name $c } catch { Write-Warning "[LangInstall] Failed to install $c : $_" }
+}
 
-# Install the Japanese language related capabilities.
-Add-WindowsCapability -Online -Name 'Language.Basic~~~ja-JP~0.0.1.0' -Verbose
-Add-WindowsCapability -Online -Name 'Language.Fonts.Jpan~~~und-JPAN~0.0.1.0' -Verbose
-Add-WindowsCapability -Online -Name 'Language.OCR~~~ja-JP~0.0.1.0' -Verbose
-Add-WindowsCapability -Online -Name 'Language.Handwriting~~~ja-JP~0.0.1.0' -Verbose   # Optional
-Add-WindowsCapability -Online -Name 'Language.Speech~~~ja-JP~0.0.1.0' -Verbose        # Optional
-Add-WindowsCapability -Online -Name 'Language.TextToSpeech~~~ja-JP~0.0.1.0' -Verbose  # Optional
+# Time zone is sometimes expected already at later script, but safe to set here too
+try {
+    Set-TimeZone -Id 'Tokyo Standard Time'
+    Write-Host '[LangInstall] Time zone set to Tokyo Standard Time'
+} catch { Write-Warning "[LangInstall] Failed to set time zone: $_" }
 
-# Set the time zone for the current computer.
-Set-TimeZone -Id 'Tokyo Standard Time' -Verbose
+# Final validation
+$validation = Get-InstalledLanguage -Language $Lang -ErrorAction SilentlyContinue
+if (-not $validation) {
+    Write-Error "[LangInstall] FAILED: $Lang language not detected after installation attempts."
+    exit 1
+}
+
+Write-Host '[LangInstall] Completed Japanese language pack installation. Reboot recommended.'
+exit 0
