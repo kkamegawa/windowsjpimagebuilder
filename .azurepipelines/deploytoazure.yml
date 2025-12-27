@@ -7,7 +7,7 @@ trigger:
 - none
 
 schedules:
-- cron: "0 16 8-14 * 2"
+- cron: "0 16 8-16 * 2"
   displayName: Weekly build schedule - Second Tuesday of each month at 9 AM PT
   branches:
     include:
