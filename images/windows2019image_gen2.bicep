@@ -61,14 +61,14 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         type: 'PowerShell'
         runElevated: true
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Install-Chocolatey.ps1'
-        sha256Checksum: '66f00fe2a7feb9523d88ffea77454b263a3c9d89f7daa9620614d6b19d7d631d'
+        sha256Checksum: '99cf2944ea522e3136aa0d3e9946771f7fb3202bb540d0a2d0b71354ab9091d5'
       }
       {
         name: 'InstallPowerShellCore'
         type: 'PowerShell'
         runElevated: true
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Install-PowerShellCore.ps1'
-        sha256Checksum: '60a45c113ab7f4602f5b5c446ad08583376f2d51804c1c69ceac04d4d28b63d7'
+        sha256Checksum: '26a2b129ed24c93a3d97060c0b6b9e0b74d00c1c6857b21f7d28753c151c5780'
       }
       {
         type: 'PowerShell'

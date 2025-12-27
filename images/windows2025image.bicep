@@ -75,7 +75,7 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
         type: 'PowerShell'
         runElevated: true
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Install-PowerShellCore-Winget.ps1'
-        sha256Checksum: 'beea0d5c5c233c92ce8a156c772a22d4e56752590cd8f920dacecb48d496034e'
+        sha256Checksum: '2d59d4253ffc4f18da1a6a08d6950ea23e67225a93570a5ff496bdc120121877'
       }
       {
         name: 'Install Language Pack'
