@@ -57,6 +57,18 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         runElevated: false
       }
       {
+        name: 'InstallChocolatey'
+        type: 'PowerShell'
+        runElevated: true
+        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Install-Chocolatey.ps1'
+      }
+      {
+        name: 'InstallPowerShellCore'
+        type: 'PowerShell'
+        runElevated: true
+        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Install-PowerShellCore.ps1'
+      }
+      {
         type: 'PowerShell'
         name: 'InstallNET48FX'
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/Install-NET48.ps1'
@@ -126,6 +138,7 @@ resource ws2019ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2022
         name: 'cleanup'
         inline: [
           'remove-item -path ${imageFolder} -recurse -force'
+          'if (Get-Command choco -ErrorAction SilentlyContinue) { choco uninstall chocolatey -y }'
         ]
       }
     ]

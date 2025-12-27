@@ -71,6 +71,12 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
         ]
       }
       {
+        name: 'InstallPowerShellCore'
+        type: 'PowerShell'
+        runElevated: true
+        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Install-PowerShellCore-Winget.ps1'
+      }
+      {
         name: 'Install Language Pack'
         type: 'PowerShell'
         runElevated: true
