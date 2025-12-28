@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.37.4.10188",
-      "templateHash": "9314729311243659199"
+      "version": "0.39.26.7824",
+      "templateHash": "5944840293512442776"
     }
   },
   "parameters": {
@@ -93,6 +93,20 @@
             "runElevated": false
           },
           {
+            "name": "InstallChocolatey",
+            "type": "PowerShell",
+            "runElevated": true,
+            "scriptUri": "https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Install-Chocolatey.ps1",
+            "sha256Checksum": "b30e9e8fdf51dbf5c6f28d452d635fe5ff647c3b927f4ce6056b8a6a49c30984"
+          },
+          {
+            "name": "InstallPowerShellCore",
+            "type": "PowerShell",
+            "runElevated": true,
+            "scriptUri": "https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Install-PowerShellCore.ps1",
+            "sha256Checksum": "58446e84d003397ea156f2286a59f83737ab8c1eabe94c208a6e87ab0f099b17"
+          },
+          {
             "type": "PowerShell",
             "name": "InstallNET48FX",
             "scriptUri": "https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2019/Install-NET48.ps1",
@@ -156,8 +170,10 @@
           {
             "type": "PowerShell",
             "name": "cleanup",
+            "runElevated": true,
             "inline": [
-              "[format('remove-item -path {0} -recurse -force', variables('imageFolder'))]"
+              "[format('remove-item -path {0} -recurse -force', variables('imageFolder'))]",
+              "if (Get-Command choco -ErrorAction SilentlyContinue) { choco uninstall chocolatey -y }"
             ]
           }
         ],
