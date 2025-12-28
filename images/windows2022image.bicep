@@ -115,6 +115,7 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
       {
         type: 'PowerShell'
         name: 'cleanup'
+        runElevated: true
         inline: [
           'remove-item -path ${imageFolder} -recurse -force'
           'if (Get-Command choco -ErrorAction SilentlyContinue) { choco uninstall chocolatey -y }'
