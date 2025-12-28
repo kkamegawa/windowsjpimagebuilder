@@ -57,6 +57,20 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
         ]
       }
       {
+        name: 'InstallChocolatey'
+        type: 'PowerShell'
+        runElevated: true
+        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Install-Chocolatey.ps1'
+        sha256Checksum: 'b30e9e8fdf51dbf5c6f28d452d635fe5ff647c3b927f4ce6056b8a6a49c30984'
+      }
+      {
+        name: 'InstallPowerShellCore'
+        type: 'PowerShell'
+        runElevated: true
+        scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Install-PowerShellCore.ps1'
+        sha256Checksum: '58446e84d003397ea156f2286a59f83737ab8c1eabe94c208a6e87ab0f099b17'
+      }
+      {
         type: 'PowerShell'
         name: 'InstallLanguagePack'
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2022/install-jplangpack.ps1'
@@ -101,8 +115,10 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
       {
         type: 'PowerShell'
         name: 'cleanup'
+        runElevated: true
         inline: [
           'remove-item -path ${imageFolder} -recurse -force'
+          'if (Get-Command choco -ErrorAction SilentlyContinue) { choco uninstall chocolatey -y }'
         ]
       }
     ]
