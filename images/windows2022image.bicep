@@ -61,7 +61,7 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
         type: 'PowerShell'
         runElevated: true
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Install-Chocolatey.ps1'
-        sha256Checksum: '99cf2944ea522e3136aa0d3e9946771f7fb3202bb540d0a2d0b71354ab9091d5'
+        sha256Checksum: 'b30e9e8fdf51dbf5c6f28d452d635fe5ff647c3b927f4ce6056b8a6a49c30984'
       }
       {
         name: 'InstallPowerShellCore'
