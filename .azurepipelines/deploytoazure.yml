@@ -25,23 +25,56 @@ jobs:
       azureSubscription: 'AzureDevOpsEvalations'
       scriptType: pscore
       scriptLocation: 'inlineScript'
-      inlineScript: | 
-        $templateExists = az image builder show --resource-group communitypublic --name itws2022jpeast --query "name" -o tsv 2>$null
-        if ($templateExists) {
-          Write-Host "Existing image template 'itws2022jpeast' found. Deleting..."
-          az image builder delete --resource-group communitypublic --name itws2022jpeast
-          Write-Host "Image template deleted successfully."
-        } else {
-          Write-Host "No existing image template 'itws2022jpeast' found."
+      inlineScript: |
+        $ErrorActionPreference = 'Stop'
+        $resourceGroup = 'communitypublic'
+        $templateName = 'itws2022jpeast'
+
+        $existing = az image builder show --resource-group $resourceGroup --name $templateName -o json 2>$null
+        if (-not $existing) {
+          Write-Host "No existing image template '$templateName' found."
+          exit 0
         }
-    continueOnError: true
+
+        # A template whose build has not reached a terminal state cannot be deleted. Without
+        # handling that, the delete fails with OperationNotAllowed and the deployment below
+        # then fails with "Update/Upgrade of image templates is currently not supported".
+        $terminalStates = @('Succeeded', 'Failed', 'Canceled', 'PartiallySucceeded')
+        $runState = ($existing | ConvertFrom-Json).lastRunStatus.runState
+
+        if ($runState -eq 'Running') {
+          Write-Host "Image template '$templateName' has a build in progress. Cancelling it..."
+          az image builder cancel --resource-group $resourceGroup --name $templateName
+          if ($LASTEXITCODE -ne 0) { throw "Failed to cancel the running build of '$templateName'." }
+        }
+
+        # Cancellation passes through a transient 'Canceling' state in which a delete is
+        # still rejected, so wait for a terminal state rather than just for 'Running' to
+        # clear. An empty state means the template has never been run.
+        if (-not [string]::IsNullOrWhiteSpace($runState) -and $terminalStates -notcontains $runState) {
+          $deadline = (Get-Date).AddMinutes(15)
+          do {
+            Start-Sleep -Seconds 15
+            $runState = az image builder show --resource-group $resourceGroup --name $templateName --query "lastRunStatus.runState" -o tsv 2>$null
+            Write-Host "  run state: $runState"
+          } while ((Get-Date) -lt $deadline -and -not [string]::IsNullOrWhiteSpace($runState) -and $terminalStates -notcontains $runState)
+
+          if (-not [string]::IsNullOrWhiteSpace($runState) -and $terminalStates -notcontains $runState) {
+            throw "Build of '$templateName' did not reach a terminal state within 15 minutes (last state: '$runState')."
+          }
+        }
+
+        Write-Host "Existing image template '$templateName' found. Deleting..."
+        az image builder delete --resource-group $resourceGroup --name $templateName
+        if ($LASTEXITCODE -ne 0) { throw "Failed to delete image template '$templateName'." }
+        Write-Host "Image template deleted successfully."
   - task: AzureCLI@2
     displayName: 'Build Windows Server 2022 Image Template'
     inputs:
       azureSubscription: 'AzureDevOpsEvalations'
       scriptType: pscore
       scriptLocation: 'inlineScript'
-      inlineScript: | 
+      inlineScript: |
         az deployment group create --resource-group communitypublic --template-file $(build.SourcesDirectory)/images/windows2022image.bicep --parameters aibName=aib-communityimagecreator gallaryImageName=imgws2022jp imageTemplateName=itws2022jpeast AzureComputingGallery=sig_windows_jajp
   - task: AzureCLI@2
     condition: succeeded()
@@ -50,7 +83,7 @@ jobs:
       azureSubscription: 'AzureDevOpsEvalations'
       scriptType: 'pscore'
       scriptLocation: 'inlineScript'
-      inlineScript: | 
+      inlineScript: |
         az image builder run --resource-group communitypublic --name itws2022jpeast --no-wait
 
 - job: DeployWindows2025Image
@@ -64,23 +97,56 @@ jobs:
       azureSubscription: 'AzureDevOpsEvalations'
       scriptType: pscore
       scriptLocation: 'inlineScript'
-      inlineScript: | 
-        $templateExists = az image builder show --resource-group communitypublic --name itws2025jpeast --query "name" -o tsv 2>$null
-        if ($templateExists) {
-          Write-Host "Existing image template 'itws2025jpeast' found. Deleting..."
-          az image builder delete --resource-group communitypublic --name itws2025jpeast
-          Write-Host "Image template deleted successfully."
-        } else {
-          Write-Host "No existing image template 'itws2025jpeast' found."
+      inlineScript: |
+        $ErrorActionPreference = 'Stop'
+        $resourceGroup = 'communitypublic'
+        $templateName = 'itws2025jpeast'
+
+        $existing = az image builder show --resource-group $resourceGroup --name $templateName -o json 2>$null
+        if (-not $existing) {
+          Write-Host "No existing image template '$templateName' found."
+          exit 0
         }
-    continueOnError: true
+
+        # A template whose build has not reached a terminal state cannot be deleted. Without
+        # handling that, the delete fails with OperationNotAllowed and the deployment below
+        # then fails with "Update/Upgrade of image templates is currently not supported".
+        $terminalStates = @('Succeeded', 'Failed', 'Canceled', 'PartiallySucceeded')
+        $runState = ($existing | ConvertFrom-Json).lastRunStatus.runState
+
+        if ($runState -eq 'Running') {
+          Write-Host "Image template '$templateName' has a build in progress. Cancelling it..."
+          az image builder cancel --resource-group $resourceGroup --name $templateName
+          if ($LASTEXITCODE -ne 0) { throw "Failed to cancel the running build of '$templateName'." }
+        }
+
+        # Cancellation passes through a transient 'Canceling' state in which a delete is
+        # still rejected, so wait for a terminal state rather than just for 'Running' to
+        # clear. An empty state means the template has never been run.
+        if (-not [string]::IsNullOrWhiteSpace($runState) -and $terminalStates -notcontains $runState) {
+          $deadline = (Get-Date).AddMinutes(15)
+          do {
+            Start-Sleep -Seconds 15
+            $runState = az image builder show --resource-group $resourceGroup --name $templateName --query "lastRunStatus.runState" -o tsv 2>$null
+            Write-Host "  run state: $runState"
+          } while ((Get-Date) -lt $deadline -and -not [string]::IsNullOrWhiteSpace($runState) -and $terminalStates -notcontains $runState)
+
+          if (-not [string]::IsNullOrWhiteSpace($runState) -and $terminalStates -notcontains $runState) {
+            throw "Build of '$templateName' did not reach a terminal state within 15 minutes (last state: '$runState')."
+          }
+        }
+
+        Write-Host "Existing image template '$templateName' found. Deleting..."
+        az image builder delete --resource-group $resourceGroup --name $templateName
+        if ($LASTEXITCODE -ne 0) { throw "Failed to delete image template '$templateName'." }
+        Write-Host "Image template deleted successfully."
   - task: AzureCLI@2
     displayName: 'Build Windows Server 2025 Image Template'
     inputs:
       azureSubscription: 'AzureDevOpsEvalations'
       scriptType: pscore
       scriptLocation: 'inlineScript'
-      inlineScript: | 
+      inlineScript: |
         az deployment group create --resource-group communitypublic --template-file $(build.SourcesDirectory)/images/windows2025image.bicep --parameters aibName=aib-communityimagecreator gallaryImageName=imgws2025jp imageTemplateName=itws2025jpeast AzureComputingGallery=sig_windows_jajp
   - task: AzureCLI@2
     condition: succeeded()
@@ -89,5 +155,5 @@ jobs:
       azureSubscription: 'AzureDevOpsEvalations'
       scriptType: 'pscore'
       scriptLocation: 'inlineScript'
-      inlineScript: | 
+      inlineScript: |
         az image builder run --resource-group communitypublic --name itws2025jpeast --no-wait
