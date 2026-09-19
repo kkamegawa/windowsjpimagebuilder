@@ -36,22 +36,32 @@ jobs:
           exit 0
         }
 
-        # A template whose build is still running cannot be deleted. Without cancelling it
-        # first, the delete fails with OperationNotAllowed and the deployment below then
-        # fails with "Update/Upgrade of image templates is currently not supported".
+        # A template whose build has not reached a terminal state cannot be deleted. Without
+        # handling that, the delete fails with OperationNotAllowed and the deployment below
+        # then fails with "Update/Upgrade of image templates is currently not supported".
+        $terminalStates = @('Succeeded', 'Failed', 'Canceled', 'PartiallySucceeded')
         $runState = ($existing | ConvertFrom-Json).lastRunStatus.runState
+
         if ($runState -eq 'Running') {
           Write-Host "Image template '$templateName' has a build in progress. Cancelling it..."
           az image builder cancel --resource-group $resourceGroup --name $templateName
           if ($LASTEXITCODE -ne 0) { throw "Failed to cancel the running build of '$templateName'." }
+        }
 
+        # Cancellation passes through a transient 'Canceling' state in which a delete is
+        # still rejected, so wait for a terminal state rather than just for 'Running' to
+        # clear. An empty state means the template has never been run.
+        if (-not [string]::IsNullOrWhiteSpace($runState) -and $terminalStates -notcontains $runState) {
           $deadline = (Get-Date).AddMinutes(15)
-          while ((Get-Date) -lt $deadline) {
-            $runState = az image builder show --resource-group $resourceGroup --name $templateName --query "lastRunStatus.runState" -o tsv 2>$null
-            if ($runState -ne 'Running') { break }
+          do {
             Start-Sleep -Seconds 15
+            $runState = az image builder show --resource-group $resourceGroup --name $templateName --query "lastRunStatus.runState" -o tsv 2>$null
+            Write-Host "  run state: $runState"
+          } while ((Get-Date) -lt $deadline -and -not [string]::IsNullOrWhiteSpace($runState) -and $terminalStates -notcontains $runState)
+
+          if (-not [string]::IsNullOrWhiteSpace($runState) -and $terminalStates -notcontains $runState) {
+            throw "Build of '$templateName' did not reach a terminal state within 15 minutes (last state: '$runState')."
           }
-          if ($runState -eq 'Running') { throw "Build of '$templateName' is still running 15 minutes after it was cancelled." }
         }
 
         Write-Host "Existing image template '$templateName' found. Deleting..."
@@ -98,22 +108,32 @@ jobs:
           exit 0
         }
 
-        # A template whose build is still running cannot be deleted. Without cancelling it
-        # first, the delete fails with OperationNotAllowed and the deployment below then
-        # fails with "Update/Upgrade of image templates is currently not supported".
+        # A template whose build has not reached a terminal state cannot be deleted. Without
+        # handling that, the delete fails with OperationNotAllowed and the deployment below
+        # then fails with "Update/Upgrade of image templates is currently not supported".
+        $terminalStates = @('Succeeded', 'Failed', 'Canceled', 'PartiallySucceeded')
         $runState = ($existing | ConvertFrom-Json).lastRunStatus.runState
+
         if ($runState -eq 'Running') {
           Write-Host "Image template '$templateName' has a build in progress. Cancelling it..."
           az image builder cancel --resource-group $resourceGroup --name $templateName
           if ($LASTEXITCODE -ne 0) { throw "Failed to cancel the running build of '$templateName'." }
+        }
 
+        # Cancellation passes through a transient 'Canceling' state in which a delete is
+        # still rejected, so wait for a terminal state rather than just for 'Running' to
+        # clear. An empty state means the template has never been run.
+        if (-not [string]::IsNullOrWhiteSpace($runState) -and $terminalStates -notcontains $runState) {
           $deadline = (Get-Date).AddMinutes(15)
-          while ((Get-Date) -lt $deadline) {
-            $runState = az image builder show --resource-group $resourceGroup --name $templateName --query "lastRunStatus.runState" -o tsv 2>$null
-            if ($runState -ne 'Running') { break }
+          do {
             Start-Sleep -Seconds 15
+            $runState = az image builder show --resource-group $resourceGroup --name $templateName --query "lastRunStatus.runState" -o tsv 2>$null
+            Write-Host "  run state: $runState"
+          } while ((Get-Date) -lt $deadline -and -not [string]::IsNullOrWhiteSpace($runState) -and $terminalStates -notcontains $runState)
+
+          if (-not [string]::IsNullOrWhiteSpace($runState) -and $terminalStates -notcontains $runState) {
+            throw "Build of '$templateName' did not reach a terminal state within 15 minutes (last state: '$runState')."
           }
-          if ($runState -eq 'Running') { throw "Build of '$templateName' is still running 15 minutes after it was cancelled." }
         }
 
         Write-Host "Existing image template '$templateName' found. Deleting..."
