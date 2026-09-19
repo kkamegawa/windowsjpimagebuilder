@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.43.8.12551",
-      "templateHash": "12078622724233553474"
+      "version": "0.46.1.21595",
+      "templateHash": "12028281113981230527"
     }
   },
   "parameters": {
@@ -138,6 +138,9 @@
             "searchCriteria": "IsInstalled=0",
             "filters": [
               "exclude:$_.Title -like '*Preview*'",
+              "exclude:$_.Title -like '*Windows Security platform*'",
+              "exclude:$_.Title -like '*KB 5007651*'",
+              "exclude:$_.Title -like '*KB2267602*'",
               "include:$true"
             ],
             "updateLimit": 30
