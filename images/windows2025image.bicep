@@ -84,7 +84,7 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
         type: 'PowerShell'
         runElevated: true
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/Windows2025/Install-JapaneseLanguage.ps1'
-        sha256Checksum: 'eeffc3e06c7d7ba9c823538c247bd0b8d2b919502ca58424e7a1dcdc3fdc03c8'
+        sha256Checksum: 'fa31af58fd6bc3ec814310117b02368493be514862c9cee8a24bc0c4a1362e0d'
       }
       {
         type: 'WindowsRestart'

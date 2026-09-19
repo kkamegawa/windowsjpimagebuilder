@@ -1,7 +1,7 @@
 <#
     .SYNOPSIS
-    Installs a Windows display language (ja-JP by default) on Windows Server 2025 with a
-    bounded execution time and per-capability diagnostics.
+    Installs a Windows display language (ja-JP by default) on Windows Server 2025 under a
+    single deadline, with per-capability diagnostics.
 
     .DESCRIPTION
     Install-Language downloads the language pack and its Features on Demand from Windows
@@ -22,8 +22,9 @@
 
       1. Automatic updates are re-enabled for the duration of the install, so the Features on
          Demand source is reachable, and the original value is restored afterwards.
-      2. Install-Language runs in a background job bounded by -TimeoutMinutes, so a stuck
-         download can no longer consume the whole image build timeout.
+      2. Every operation that can reach the Features on Demand source - Install-Language and
+         each Add-WindowsCapability retry - runs under one shared deadline derived from
+         -TimeoutMinutes, so no single download can consume the whole image build timeout.
       3. Every language capability is reported as Installed or NotPresent, and the missing
          ones are retried individually so the log names the component that actually failed.
       4. The script fails only when the language itself is missing. Missing optional
@@ -37,7 +38,8 @@
     Language tag to install. Defaults to ja-JP.
 
     .PARAMETER TimeoutMinutes
-    Upper bound for the Install-Language call. Defaults to 25 minutes.
+    Deadline for the whole language install, covering Install-Language and every capability
+    retry together. Defaults to 25 minutes.
 
     .NOTES
     References:
@@ -49,7 +51,9 @@
 
 [CmdletBinding()]
 param(
-    [ValidateNotNullOrEmpty()]
+    # Restricted to a BCP-47 style tag so the value can be embedded in the child process
+    # command line below without further quoting concerns.
+    [ValidatePattern('^[A-Za-z]{2,3}(-[A-Za-z0-9]+)*$')]
     [string]$Language = 'ja-JP',
 
     [ValidateRange(1, 120)]
@@ -79,6 +83,94 @@ function Set-NoAutoUpdateValue {
     Set-ItemProperty -Path $AutoUpdatePath -Name NoAutoUpdate -Value $Value
 }
 
+function Get-RemainingSeconds {
+    param([datetime]$Deadline)
+
+    $remaining = [int][math]::Floor(($Deadline - (Get-Date)).TotalSeconds)
+    if ($remaining -lt 0) {
+        return 0
+    }
+
+    return $remaining
+}
+
+function Invoke-BoundedOperation {
+    <#
+        Runs a command in a child Windows PowerShell process and kills it once the deadline
+        is reached, so a servicing operation that never returns cannot hold up the image
+        build. A child process is used rather than Start-Job because the job infrastructure
+        is unavailable when the host runs in a restricted language mode.
+
+        Returns an object with TimedOut, ErrorMessage and Elapsed; it never throws for a
+        failure of the command itself, so the caller decides what is fatal.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$Description,
+        [Parameter(Mandatory = $true)][string]$Command,
+        [Parameter(Mandatory = $true)][int]$TimeoutSeconds
+    )
+
+    $outcome = [pscustomobject]@{
+        Description  = $Description
+        TimedOut     = $false
+        ErrorMessage = $null
+        Elapsed      = [TimeSpan]::Zero
+    }
+
+    if ($TimeoutSeconds -le 0) {
+        $outcome.TimedOut = $true
+        $outcome.ErrorMessage = 'No time left before the deadline.'
+        return $outcome
+    }
+
+    $powerShellPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\WindowsPowerShell\v1.0\powershell.exe'
+    $stdoutPath = [System.IO.Path]::GetTempFileName()
+    $stderrPath = [System.IO.Path]::GetTempFileName()
+    $wrapped = "`$ErrorActionPreference = 'Stop'; try { $Command; exit 0 } catch { Write-Error `$_; exit 1 }"
+
+    $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+
+    try {
+        $process = Start-Process -FilePath $powerShellPath -PassThru -NoNewWindow `
+            -RedirectStandardOutput $stdoutPath -RedirectStandardError $stderrPath `
+            -ArgumentList @('-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', $wrapped)
+
+        # Touching Handle keeps the process handle open, without which ExitCode is not
+        # readable after the process has exited.
+        $null = $process.Handle
+
+        if (-not $process.WaitForExit($TimeoutSeconds * 1000)) {
+            $outcome.TimedOut = $true
+            $outcome.ErrorMessage = "Did not finish within $TimeoutSeconds seconds."
+            Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
+        } else {
+            # WaitForExit(milliseconds) can return before the exit code is available, so let
+            # the process settle before reading it.
+            $process.WaitForExit()
+
+            if ($process.ExitCode -ne 0) {
+                $stderr = Get-Content -Path $stderrPath -Raw -ErrorAction SilentlyContinue
+                if ($stderr) {
+                    $outcome.ErrorMessage = ($stderr -replace '\s+', ' ').Trim()
+                } else {
+                    $outcome.ErrorMessage = "Exited with code $($process.ExitCode)."
+                }
+            }
+        }
+
+        $stdout = Get-Content -Path $stdoutPath -Raw -ErrorAction SilentlyContinue
+        if ($stdout -and $stdout.Trim()) {
+            Write-Host $stdout.TrimEnd()
+        }
+    } finally {
+        $stopwatch.Stop()
+        $outcome.Elapsed = $stopwatch.Elapsed
+        Remove-Item -Path $stdoutPath, $stderrPath -Force -ErrorAction SilentlyContinue
+    }
+
+    return $outcome
+}
+
 # Features on Demand are downloaded from Windows Update, which Initialize-VM.ps1 has already
 # turned off. Restore the original value in the finally block so the rest of the build keeps
 # the state it expects.
@@ -91,37 +183,29 @@ if ($null -ne $originalNoAutoUpdate -and $originalNoAutoUpdate -ne 0) {
     $mustRestore = $true
 }
 
+# One deadline covers Install-Language and every capability retry, so the whole step is
+# bounded rather than just its first operation.
+$deadline = (Get-Date).AddMinutes($TimeoutMinutes)
+
 try {
-    Write-Host "Installing language $Language (timeout: $TimeoutMinutes minutes)"
-    $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+    Write-Host "Installing language $Language (deadline: $TimeoutMinutes minutes from now)"
 
-    $job = Start-Job -ScriptBlock {
-        param([string]$Tag)
+    $install = Invoke-BoundedOperation -Description "Install-Language $Language" `
+        -TimeoutSeconds (Get-RemainingSeconds -Deadline $deadline) `
+        -Command "Import-Module -Name LanguagePackManagement; Install-Language -Language '$Language' -CopyToSettings | Out-Null"
 
-        Import-Module -Name LanguagePackManagement -ErrorAction Stop
-        Install-Language -Language $Tag -CopyToSettings -ErrorAction Stop | Out-Null
-    } -ArgumentList $Language
+    Write-Host ("Install-Language took {0:N1} minutes." -f $install.Elapsed.TotalMinutes)
 
-    $finished = Wait-Job -Job $job -Timeout ($TimeoutMinutes * 60)
-
-    if ($null -eq $finished) {
-        Write-Warning "Install-Language did not finish within $TimeoutMinutes minutes. Stopping it and continuing with per-capability installation."
-        Stop-Job -Job $job
+    if ($install.TimedOut) {
+        Write-Warning "Install-Language hit the deadline. Continuing with per-capability installation. ($($install.ErrorMessage))"
+    } elseif ($install.ErrorMessage) {
+        # A partial install is expected when an optional Feature on Demand is unavailable.
+        # The per-capability pass below reports which one, and the final check decides
+        # whether the build can continue.
+        Write-Warning "Install-Language reported an error: $($install.ErrorMessage)"
     } else {
-        try {
-            Receive-Job -Job $job -ErrorAction Stop
-            Write-Host "Install-Language completed."
-        } catch {
-            # A partial install is expected when an optional Feature on Demand is unavailable.
-            # The per-capability pass below reports which one, and the final check decides
-            # whether the build can continue.
-            Write-Warning "Install-Language reported an error: $($_.Exception.Message)"
-        }
+        Write-Host "Install-Language completed."
     }
-
-    Remove-Job -Job $job -Force -ErrorAction SilentlyContinue
-    $stopwatch.Stop()
-    Write-Host ("Install-Language took {0:N1} minutes." -f $stopwatch.Elapsed.TotalMinutes)
 
     # Report and retry the individual capabilities. und-JPAN covers the Japanese font
     # capability, which is named after the script rather than the language tag.
@@ -134,12 +218,21 @@ try {
     }
 
     foreach ($capability in ($capabilities | Where-Object { $_.State -ne 'Installed' })) {
-        Write-Host "Retrying capability $($capability.Name)"
-        try {
-            Add-WindowsCapability -Online -Name $capability.Name -ErrorAction Stop | Out-Null
+        $remaining = Get-RemainingSeconds -Deadline $deadline
+        if ($remaining -le 0) {
+            Write-Warning "Deadline reached; skipping the remaining capability retries."
+            break
+        }
+
+        Write-Host "Retrying capability $($capability.Name) (up to $remaining seconds)"
+        $retry = Invoke-BoundedOperation -Description $capability.Name `
+            -TimeoutSeconds $remaining `
+            -Command "Add-WindowsCapability -Online -Name '$($capability.Name)' | Out-Null"
+
+        if ($retry.TimedOut -or $retry.ErrorMessage) {
+            Write-Warning "  $($capability.Name) could not be installed: $($retry.ErrorMessage)"
+        } else {
             Write-Host "  installed."
-        } catch {
-            Write-Warning "  $($capability.Name) could not be installed: $($_.Exception.Message)"
         }
     }
 
