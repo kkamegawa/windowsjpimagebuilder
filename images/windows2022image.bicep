@@ -90,6 +90,14 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
         searchCriteria: 'IsInstalled=0'
         filters: [
           'exclude:$_.Title -like \'*Preview*\''
+          // KB5007651 (Windows Security platform update) is installed by Defender itself and
+          // is never recorded as installed by the Windows Update agent, so the WindowsUpdate
+          // customizer reinstalls it and reboots in an endless loop until the build times out.
+          'exclude:$_.Title -like \'*Windows Security platform*\''
+          'exclude:$_.Title -like \'*KB 5007651*\''
+          // Defender security intelligence (KB2267602) is refreshed daily and is about 1.5 GB
+          // per download, so baking it into the image only costs build time.
+          'exclude:$_.Title -like \'*KB2267602*\''
           'include:$true'
         ]
         updateLimit: 30
