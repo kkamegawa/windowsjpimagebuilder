@@ -61,7 +61,7 @@ resource ws2022ImageTemplate 'Microsoft.VirtualMachineImages/imageTemplates@2024
         type: 'PowerShell'
         runElevated: true
         scriptUri: 'https://raw.githubusercontent.com/kkamegawa/windowsjpimagebuilder/main/images/common/Install-PowerShellCore-GitHub.ps1'
-        sha256Checksum: '086398856bb52c2b8ac6c03d63d0946af19762467b27f97df28599b94e72825a'
+        sha256Checksum: '7cabd5bcc4fd724a569977a48250198e038c5b63303a219ff48e6210455745cd'
       }
       {
         type: 'PowerShell'

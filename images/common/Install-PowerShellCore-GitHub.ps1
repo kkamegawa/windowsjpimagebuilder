@@ -1,58 +1,91 @@
-################################################################################
-##  File:  Install-PowerShellCore-GitHub.ps1
-##  Desc:  Install latest non-preview PowerShell from GitHub releases
-################################################################################
+#Requires -Version 5.1
 
-$ErrorActionPreference = "Stop"
+<#
+.SYNOPSIS
+    Installs the pinned PowerShell 7.6.10 x64 MSI release.
 
-Write-Host "Installing latest non-preview PowerShell from GitHub releases..."
+.DESCRIPTION
+    Downloads the official PowerShell 7.6.10 x64 MSI, verifies its SHA-256
+    checksum, and installs it silently for Azure Image Builder.
+#>
+
+$ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
+
+$version = '7.6.10'
+$installerName = "PowerShell-$version-win-x64.msi"
+$installerUri = "https://github.com/PowerShell/PowerShell/releases/download/v$version/$installerName"
+$expectedSha256 = '7D8DAEA48B450D4D62FCD1AC4D6FAA7AC2DB5E11ABA5061EE81B7496ADCA8C07'
+$installerPath = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath $installerName
 
 try {
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    Write-Host "Downloading PowerShell $version from the official GitHub release..."
 
-    $headers = @{ "User-Agent" = "AzureImageBuilder" }
-    $release = Invoke-RestMethod -Uri "https://api.github.com/repos/PowerShell/PowerShell/releases/latest" -Headers $headers
+    # Windows PowerShell 5.1 may otherwise negotiate an older TLS version.
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
 
-    if (-not $release -or -not $release.assets) {
-        throw "Failed to query GitHub releases for PowerShell"
+    $maxDownloadAttempts = 3
+    for ($attempt = 1; $attempt -le $maxDownloadAttempts; $attempt++) {
+        try {
+            Invoke-WebRequest -Uri $installerUri -OutFile $installerPath -UseBasicParsing -TimeoutSec 1200
+            break
+        }
+        catch {
+            if ($attempt -eq $maxDownloadAttempts) {
+                throw "Download failed after $maxDownloadAttempts attempts: $($_.Exception.Message)"
+            }
+
+            if (Test-Path -LiteralPath $installerPath -PathType Leaf) {
+                Remove-Item -LiteralPath $installerPath -Force -ErrorAction SilentlyContinue
+            }
+
+            $retryDelaySeconds = 15 * $attempt
+            Write-Host "Download attempt $attempt failed. Retrying in $retryDelaySeconds seconds..."
+            Start-Sleep -Seconds $retryDelaySeconds
+        }
     }
 
-    $asset = $release.assets | Where-Object { $_.name -match '^PowerShell-.*-win-x64\.msi$' } | Select-Object -First 1
-    if (-not $asset) {
-        throw "PowerShell MSI asset not found in latest release"
+    if (-not (Test-Path -LiteralPath $installerPath -PathType Leaf)) {
+        throw "The PowerShell MSI was not downloaded from $installerUri."
     }
 
-    $downloadUrl = $asset.browser_download_url
-    $msiPath = Join-Path $env:TEMP $asset.name
-
-    Write-Host "Downloading $($asset.name)..."
-    Invoke-WebRequest -Uri $downloadUrl -OutFile $msiPath -Headers $headers -UseBasicParsing
-
-    $signature = Get-AuthenticodeSignature -FilePath $msiPath
-    if ($signature.Status -ne "Valid") {
-        throw "MSI signature validation failed: $($signature.Status)"
-    }
-    if ($signature.SignerCertificate.Subject -notmatch "CN=Microsoft Corporation") {
-        throw "MSI signer is not Microsoft Corporation"
+    $actualSha256 = (Get-FileHash -LiteralPath $installerPath -Algorithm SHA256).Hash
+    if (-not [string]::Equals($actualSha256, $expectedSha256, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "SHA-256 mismatch for $installerName. Expected $expectedSha256, got $actualSha256."
     }
 
-    Write-Host "Installing PowerShell from $($asset.name)..."
-    $process = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$msiPath`" /qn /norestart" -Wait -PassThru
-    if ($process.ExitCode -ne 0) {
-        throw "MSI installation failed with exit code $($process.ExitCode)"
+    Write-Host "Checksum verified. Installing PowerShell $version silently..."
+    $msiexecPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\msiexec.exe'
+    $arguments = '/i "{0}" /qn /norestart ADD_PATH=1 USE_MU=0 ENABLE_MU=0' -f $installerPath
+    $process = Start-Process -FilePath $msiexecPath -ArgumentList $arguments -Wait -PassThru
+
+    if ($process.ExitCode -ne 0 -and $process.ExitCode -ne 3010) {
+        throw "msiexec.exe failed to install $installerName with exit code $($process.ExitCode)."
     }
 
-    $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
-
-    if (Get-Command pwsh -ErrorAction SilentlyContinue) {
-        pwsh -Version
-        Write-Host "PowerShell installation completed successfully"
-    } else {
-        throw "PowerShell installation failed - pwsh command not found"
+    $pwshPath = Join-Path -Path $env:ProgramFiles -ChildPath 'PowerShell\7\pwsh.exe'
+    if (-not (Test-Path -LiteralPath $pwshPath -PathType Leaf)) {
+        throw "PowerShell was installed, but the expected executable was not found at $pwshPath."
     }
 
-    Remove-Item -Path $msiPath -Force -ErrorAction SilentlyContinue
-} catch {
-    Write-Error "Failed to install PowerShell: $_"
+    $installedVersion = (& $pwshPath -NoLogo -NoProfile -Command '$PSVersionTable.PSVersion.ToString()' | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0 -or $installedVersion -ne $version) {
+        throw "Installed PowerShell version verification failed. Expected $version, got '$installedVersion'."
+    }
+
+    if ($process.ExitCode -eq 3010) {
+        Write-Host "PowerShell $version installed successfully; a restart is required."
+    }
+    else {
+        Write-Host "PowerShell $version installed and verified successfully."
+    }
+}
+catch {
+    [Console]::Error.WriteLine("PowerShell $version installation failed: $($_.Exception.Message)")
     exit 1
+}
+finally {
+    if (Test-Path -LiteralPath $installerPath -PathType Leaf) {
+        Remove-Item -LiteralPath $installerPath -Force -ErrorAction SilentlyContinue
+    }
 }
